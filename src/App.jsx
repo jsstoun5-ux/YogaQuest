@@ -66,7 +66,7 @@ export default function YogaQuest() {
     total: achievementsTotal,
   } = useAchievements(workouts, (achievement) => {
     haptic.success();
-  });
+  }, tg);
 
   // Загрузка данных и проверка онбординга
   useEffect(() => {
@@ -210,7 +210,11 @@ export default function YogaQuest() {
 
         {/* Achievement Popup */}
         {newAchievement && (
-          <div className="achieve-pop">
+          <div 
+            className="achieve-pop" 
+            onClick={clearNewAchievement}
+            style={{ cursor: 'pointer' }}
+          >
             <span className="achieve-pop-icon">{newAchievement.icon}</span>
             <div>
               <div className="achieve-pop-title">!! НОВОЕ ДОСТИЖЕНИЕ !!</div>
