@@ -34,46 +34,63 @@ export function useWorkouts(tg) {
   const [workouts, setWorkouts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Ref для хранения экземпляра хранилища
   const storageRef = useRef(null);
   
   // Ref для отслеживания разблокированных достижений
   const prevAchievementsRef = useRef(new Set());
+  
+  // Ref для отслеживания начальной загрузки
+  const isInitialMount = useRef(true);
 
   // Инициализация хранилища
   useEffect(() => {
+    console.log('[useWorkouts] Initializing with tg:', !!tg, 'hasCloudStorage:', !!(tg && tg.CloudStorage));
     const storage = new Storage(tg);
     storageRef.current = storage;
     
     async function loadData() {
       try {
+        console.log('[useWorkouts] Loading workouts...');
         const data = await loadWorkouts(storage);
-        setWorkouts(data);
-        
-        // Инициализируем Set уже разблокированных достижений
-        const unlockedIds = data
-          .filter(w => w.id)
-          .map(() => null); // Заглушка, реальные достижения проверяются отдельно
-        
+        console.log('[useWorkouts] Loaded workouts:', data?.length || 0, 'items');
+        setWorkouts(data || []);
       } catch (e) {
-        console.warn('Failed to load workouts:', e);
+        console.error('[useWorkouts] Failed to load workouts:', e);
         setError(e.message);
       } finally {
         setIsLoading(false);
+        isInitialMount.current = false;
       }
     }
     
     loadData();
   }, [tg]);
 
-  // Сохранение при изменении тренировок
+  // Сохранение при изменении тренировок (но не при первой загрузке)
   useEffect(() => {
-    if (isLoading || !storageRef.current) return;
+    // Пропускаем первое сохранение после загрузки
+    if (isInitialMount.current || isLoading || !storageRef.current) {
+      return;
+    }
     
-    saveWorkouts(storageRef.current, workouts).catch(e => {
-      console.warn('Failed to save workouts:', e);
-    });
+    async function persistWorkouts() {
+      setIsSaving(true);
+      try {
+        console.log('[useWorkouts] Saving workouts:', workouts.length, 'items');
+        await saveWorkouts(storageRef.current, workouts);
+        console.log('[useWorkouts] Workouts saved successfully');
+      } catch (e) {
+        console.error('[useWorkouts] Failed to save workouts:', e);
+        setError('Failed to save: ' + e.message);
+      } finally {
+        setIsSaving(false);
+      }
+    }
+    
+    persistWorkouts();
   }, [workouts, isLoading]);
 
   /**
@@ -158,6 +175,7 @@ export function useWorkouts(tg) {
   return {
     workouts,
     isLoading,
+    isSaving,
     error,
     stats,
     addWorkout,

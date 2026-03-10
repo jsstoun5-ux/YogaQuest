@@ -11,7 +11,15 @@ import { STORAGE_KEYS } from '../constants/index.js';
 export class Storage {
   constructor(tg = null) {
     this.tg = tg;
-    this.isTelegram = !!tg?.CloudStorage;
+    // Проверяем наличие CloudStorage API
+    this.isTelegram = !!(tg && tg.CloudStorage);
+    
+    // Логируем режим работы хранилища
+    if (this.isTelegram) {
+      console.log('[Storage] Using Telegram CloudStorage');
+    } else {
+      console.log('[Storage] Using localStorage (fallback)', { hasTg: !!tg, hasCloudStorage: !!(tg && tg.CloudStorage) });
+    }
   }
 
   /**
@@ -24,15 +32,22 @@ export class Storage {
       if (this.isTelegram) {
         return new Promise((resolve, reject) => {
           this.tg.CloudStorage.getItem(key, (err, value) => {
-            if (err) reject(err);
-            else resolve(value || null);
+            if (err) {
+              console.error('[Storage] CloudStorage.getItem error:', err);
+              reject(err);
+            } else {
+              console.log('[Storage] CloudStorage.getItem success:', key, value ? `${value.length} chars` : 'null');
+              resolve(value || null);
+            }
           });
         });
       } else {
-        return localStorage.getItem(key);
+        const value = localStorage.getItem(key);
+        console.log('[Storage] localStorage.getItem:', key, value ? `${value.length} chars` : 'null');
+        return value;
       }
     } catch (e) {
-      console.warn('Storage.get error:', e);
+      console.error('[Storage] get error:', e);
       return null;
     }
   }
@@ -48,15 +63,22 @@ export class Storage {
       if (this.isTelegram) {
         return new Promise((resolve, reject) => {
           this.tg.CloudStorage.setItem(key, value, (err) => {
-            if (err) reject(err);
-            else resolve();
+            if (err) {
+              console.error('[Storage] CloudStorage.setItem error:', err);
+              reject(err);
+            } else {
+              console.log('[Storage] CloudStorage.setItem success:', key, `${value.length} chars`);
+              resolve();
+            }
           });
         });
       } else {
         localStorage.setItem(key, value);
+        console.log('[Storage] localStorage.setItem:', key, `${value.length} chars`);
       }
     } catch (e) {
-      console.warn('Storage.set error:', e);
+      console.error('[Storage] set error:', e);
+      throw e; // Пробрасываем ошибку, чтобы вызывающий код мог её обработать
     }
   }
 

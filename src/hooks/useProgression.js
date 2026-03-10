@@ -29,18 +29,25 @@ export function useProgression(workouts, tg) {
     lastReturnBonusDate: null,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Ref для хранения экземпляра хранилища
   const storageRef = useRef(null);
   
+  // Ref для отслеживания начальной загрузки
+  const isInitialMount = useRef(true);
+  
   // Инициализация хранилища
   useEffect(() => {
+    console.log('[useProgression] Initializing with tg:', !!tg, 'hasCloudStorage:', !!(tg && tg.CloudStorage));
     const storage = new Storage(tg);
     storageRef.current = storage;
     
     async function loadProfile() {
       try {
+        console.log('[useProgression] Loading profile...');
         const data = await storage.getJSON(PROFILE_KEY);
+        console.log('[useProgression] Loaded profile:', data);
         if (data) {
           setProfile({
             totalXP: data.totalXP || 0,
@@ -49,22 +56,37 @@ export function useProgression(workouts, tg) {
           });
         }
       } catch (e) {
-        console.warn('Failed to load profile:', e);
+        console.error('[useProgression] Failed to load profile:', e);
       } finally {
         setIsLoading(false);
+        isInitialMount.current = false;
       }
     }
     
     loadProfile();
   }, [tg]);
   
-  // Сохранение профиля при изменении
+  // Сохранение профиля при изменении (но не при первой загрузке)
   useEffect(() => {
-    if (isLoading || !storageRef.current) return;
+    // Пропускаем первое сохранение после загрузки
+    if (isInitialMount.current || isLoading || !storageRef.current) {
+      return;
+    }
     
-    storageRef.current.setJSON(PROFILE_KEY, profile).catch(e => {
-      console.warn('Failed to save profile:', e);
-    });
+    async function persistProfile() {
+      setIsSaving(true);
+      try {
+        console.log('[useProgression] Saving profile:', profile);
+        await storageRef.current.setJSON(PROFILE_KEY, profile);
+        console.log('[useProgression] Profile saved successfully');
+      } catch (e) {
+        console.error('[useProgression] Failed to save profile:', e);
+      } finally {
+        setIsSaving(false);
+      }
+    }
+    
+    persistProfile();
   }, [profile, isLoading]);
   
   // Вычисляемый прогресс
@@ -253,6 +275,7 @@ export function useProgression(workouts, tg) {
   return {
     progression,
     isLoading,
+    isSaving,
     processNewWorkout,
     addXP,
     unlockAchievement,
