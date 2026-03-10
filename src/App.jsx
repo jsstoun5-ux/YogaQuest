@@ -40,7 +40,7 @@ import './components/pages/LevelCard.css';
  * Главный компонент приложения
  */
 export default function YogaQuest() {
-  const { tg, isTelegram, user, haptic, storage: tgStorage } = useTelegram();
+  const { tg, isTelegram, user, telegramId, haptic, storage: tgStorage } = useTelegram();
   
   // Состояния
   const [screen, setScreen] = useState("home");
@@ -57,7 +57,7 @@ export default function YogaQuest() {
   // Хранилище
   const storage = useMemo(() => new Storage(tg), [tg]);
   
-  // Тренировки
+  // Тренировки (передаём telegramId для серверного хранилища)
   const {
     workouts,
     isLoading,
@@ -65,7 +65,7 @@ export default function YogaQuest() {
     addWorkout,
     deleteWorkout,
     prevAchievementsRef,
-  } = useWorkouts(tg);
+  } = useWorkouts(tg, telegramId);
 
   // Достижения
   const {
@@ -78,8 +78,8 @@ export default function YogaQuest() {
     haptic.success();
   }, tg);
 
-  // Прогресс (XP, уровни, сад)
-  const { progression, processNewWorkout } = useProgression(workouts, tg);
+  // Прогресс (XP, уровни, сад) - передаём telegramId для серверного хранилища
+  const { progression, processNewWorkout } = useProgression(workouts, tg, telegramId);
 
   // Загрузка данных и проверка онбординга
   useEffect(() => {

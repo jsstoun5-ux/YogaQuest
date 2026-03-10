@@ -12,6 +12,7 @@ import { calculateGardenState, getGardenGrowthTexts } from '../garden/gardenEngi
 import { checkGardenStageUp } from '../garden/gardenStages.js';
 import { getLocalDateStr } from '../utils/dateUtils.js';
 import { Storage } from '../utils/storage.js';
+import { ServerStorage } from '../utils/serverStorage.js';
 
 const PROFILE_KEY = 'yogaquest_profile';
 
@@ -19,9 +20,10 @@ const PROFILE_KEY = 'yogaquest_profile';
  * Хук для управления прогрессом
  * @param {Array} workouts - Массив тренировок
  * @param {object} tg - Telegram WebApp объект
+ * @param {string|number} telegramId - ID пользователя Telegram
  * @returns {object} Состояние и методы прогресса
  */
-export function useProgression(workouts, tg) {
+export function useProgression(workouts, tg, telegramId) {
   // Состояние профиля
   const [profile, setProfile] = useState({
     totalXP: 0,
@@ -30,24 +32,32 @@ export function useProgression(workouts, tg) {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [useServerStorage, setUseServerStorage] = useState(false);
   
   // Ref для хранения экземпляра хранилища
   const storageRef = useRef(null);
+  const serverStorageRef = useRef(null);
   
   // Ref для отслеживания начальной загрузки
   const isInitialMount = useRef(true);
   
   // Инициализация хранилища
   useEffect(() => {
-    console.log('[useProgression] Initializing with tg:', !!tg, 'hasCloudStorage:', !!(tg && tg.CloudStorage));
+    console.log('[useProgression] Initializing with tg:', !!tg, 'hasCloudStorage:', !!(tg && tg.CloudStorage), 'telegramId:', telegramId);
     const storage = new Storage(tg);
     storageRef.current = storage;
     
+    // Инициализируем серверное хранилище
+    if (telegramId) {
+      serverStorageRef.current = new ServerStorage(telegramId);
+    }
+    
     async function loadProfile() {
+      // Сначала пробуем загрузить из CloudStorage
       try {
-        console.log('[useProgression] Loading profile...');
+        console.log('[useProgression] Loading profile from CloudStorage...');
         const data = await storage.getJSON(PROFILE_KEY);
-        console.log('[useProgression] Loaded profile:', data);
+        console.log('[useProgression] Loaded profile from CloudStorage:', data);
         if (data) {
           setProfile({
             totalXP: data.totalXP || 0,
@@ -56,7 +66,29 @@ export function useProgression(workouts, tg) {
           });
         }
       } catch (e) {
-        console.error('[useProgression] Failed to load profile:', e);
+        console.error('[useProgression] Failed to load from CloudStorage:', e);
+        
+        // Если ошибка DATA_TOO_LONG, пробуем загрузить с сервера
+        if (e.message?.includes('DATA_TOO_LONG') || e === 'DATA_TOO_LONG') {
+          console.log('[useProgression] DATA_TOO_LONG error, trying server storage...');
+          setUseServerStorage(true);
+          
+          if (serverStorageRef.current) {
+            try {
+              const serverData = await serverStorageRef.current.getProfile();
+              console.log('[useProgression] Loaded profile from server:', serverData);
+              if (serverData) {
+                setProfile({
+                  totalXP: serverData.totalXP || 0,
+                  unlockedAchievementIds: serverData.unlockedAchievementIds || [],
+                  lastReturnBonusDate: serverData.lastReturnBonusDate || null,
+                });
+              }
+            } catch (serverError) {
+              console.error('[useProgression] Failed to load from server:', serverError);
+            }
+          }
+        }
       } finally {
         setIsLoading(false);
         isInitialMount.current = false;
@@ -64,7 +96,7 @@ export function useProgression(workouts, tg) {
     }
     
     loadProfile();
-  }, [tg]);
+  }, [tg, telegramId]);
   
   // Сохранение профиля при изменении (но не при первой загрузке)
   useEffect(() => {
@@ -77,17 +109,46 @@ export function useProgression(workouts, tg) {
       setIsSaving(true);
       try {
         console.log('[useProgression] Saving profile:', profile);
-        await storageRef.current.setJSON(PROFILE_KEY, profile);
-        console.log('[useProgression] Profile saved successfully');
+        
+        if (useServerStorage && serverStorageRef.current) {
+          // Сохраняем на сервер
+          console.log('[useProgression] Using server storage');
+          const success = await serverStorageRef.current.saveProfile(profile);
+          if (!success) {
+            throw new Error('Server save failed');
+          }
+          console.log('[useProgression] Profile saved to server successfully');
+        } else {
+          // Пробуем сохранить в CloudStorage
+          await storageRef.current.setJSON(PROFILE_KEY, profile);
+          console.log('[useProgression] Profile saved to CloudStorage successfully');
+        }
       } catch (e) {
         console.error('[useProgression] Failed to save profile:', e);
+        
+        // Если ошибка DATA_TOO_LONG, переключаемся на серверное хранилище
+        if (e.message?.includes('DATA_TOO_LONG') || e === 'DATA_TOO_LONG') {
+          console.log('[useProgression] DATA_TOO_LONG error, switching to server storage...');
+          setUseServerStorage(true);
+          
+          if (serverStorageRef.current) {
+            try {
+              const success = await serverStorageRef.current.saveProfile(profile);
+              if (success) {
+                console.log('[useProgression] Profile saved to server successfully');
+              }
+            } catch (serverError) {
+              console.error('[useProgression] Failed to save to server:', serverError);
+            }
+          }
+        }
       } finally {
         setIsSaving(false);
       }
     }
     
     persistProfile();
-  }, [profile, isLoading]);
+  }, [profile, isLoading, useServerStorage]);
   
   // Вычисляемый прогресс
   const progression = useMemo(() => {
