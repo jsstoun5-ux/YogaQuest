@@ -1,0 +1,395 @@
+/**
+ * YogaQuest — Pixel CSS
+ * Стили в пиксельном стиле Y2K / Tamagotchi
+ */
+
+/* === Base === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #fce4f0;
+}
+
+/* === Animations === */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.7); }
+  60% { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pixelFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 3px 3px 0 #c9607a; }
+  50% { box-shadow: 3px 3px 0 #c9607a, 0 0 12px #ffb3c666; }
+}
+
+/* === App Container === */
+.app {
+  min-height: 100vh;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 31px, #f0c8e044 32px),
+    repeating-linear-gradient(90deg, transparent, transparent 31px, #f0c8e044 32px),
+    linear-gradient(135deg, #fce4f0 0%, #ede0ff 50%, #fce4f0 100%);
+  font-family: 'Nunito', sans-serif;
+  position: relative;
+  padding-bottom: 80px;
+}
+
+/* === Scanline Effect === */
+.scanline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(180deg, transparent, #ff8fab22, transparent);
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* === Container === */
+.container {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+/* === Main Content === */
+.main {
+  padding: 14px 12px 0;
+}
+
+/* === Pixel Window === */
+.pwin {
+  background: #f5e6ff;
+  border: 3px solid #9b72cf;
+  box-shadow: 4px 4px 0 #7c4dab;
+  margin-bottom: 14px;
+  image-rendering: pixelated;
+}
+
+.pwin-title {
+  background: linear-gradient(90deg, #9b72cf, #c084fc);
+  padding: 5px 8px;
+  border-bottom: 2px solid #9b72cf;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pwin-title-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: white;
+  text-shadow: 1px 1px 0 #5c2d91;
+  flex: 1;
+}
+
+.win-btn {
+  width: 14px;
+  height: 14px;
+  background: #e8d5ff;
+  border: 2px solid #9b72cf;
+  font-size: 7px;
+  color: #5c2d91;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  flex-shrink: 0;
+  box-shadow: 1px 1px 0 #fff inset;
+}
+
+.pwin-pink .pwin-title {
+  background: linear-gradient(90deg, #ff8fab, #ffb3c6);
+  border-bottom-color: #c9607a;
+}
+
+.pwin-pink {
+  border-color: #c9607a;
+  box-shadow: 4px 4px 0 #c9607a;
+}
+
+.pwin-pink .pwin-title-text {
+  text-shadow: 1px 1px 0 #7c1d36;
+}
+
+.pwin-yellow .pwin-title {
+  background: linear-gradient(90deg, #ffd166, #ffe599);
+  border-bottom-color: #b8860b;
+}
+
+.pwin-yellow {
+  border-color: #b8860b;
+  box-shadow: 4px 4px 0 #b8860b;
+}
+
+.pwin-yellow .pwin-title-text {
+  text-shadow: 1px 1px 0 #7a5900;
+  color: #3d2800;
+}
+
+.pwin-body {
+  padding: 12px;
+}
+
+/* === Header === */
+.app-header {
+  background: linear-gradient(180deg, #c9b8ff 0%, #a98aee 100%);
+  border-bottom: 3px solid #7c4dab;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 3px 0 #5c2d91;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.app-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: white;
+  text-shadow: 2px 2px 0 #5c2d91;
+  letter-spacing: 1px;
+}
+
+.app-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: #ede0ff;
+  margin-top: 3px;
+  animation: blink 2s infinite;
+}
+
+.header-hearts {
+  display: flex;
+  gap: 3px;
+}
+
+/* === Ticker === */
+.ticker {
+  background: #ff8fab;
+  border-bottom: 2px solid #c9607a;
+  padding: 4px 0;
+  overflow: hidden;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: white;
+  text-shadow: 1px 1px 0 #c9607a;
+  white-space: nowrap;
+}
+
+.ticker-inner {
+  display: inline-block;
+  animation: marquee 20s linear infinite;
+}
+
+/* === Stat Blocks === */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.stat-block {
+  background: #fff0f5;
+  border: 2px solid #ffb3c6;
+  box-shadow: 2px 2px 0 #c9607a;
+  padding: 10px 6px;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  color: #c9607a;
+  line-height: 1;
+  text-shadow: 2px 2px 0 #ffb3c6;
+}
+
+.stat-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: #9b72cf;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+/* === Streak Box === */
+.streak-box {
+  background: linear-gradient(135deg, #fff0f5, #ede0ff);
+  border: 3px solid #ff8fab;
+  box-shadow: 4px 4px 0 #c9607a;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 14px;
+  animation: glow 2s ease-in-out infinite;
+}
+
+.streak-num {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 40px;
+  color: #ff8fab;
+  text-shadow: 3px 3px 0 #c9607a, 6px 6px 0 #ffb3c633;
+  line-height: 1;
+  animation: pixelFloat 2s ease-in-out infinite;
+}
+
+.streak-label-big {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #9b72cf;
+  margin-top: 6px;
+  text-shadow: 1px 1px 0 #c9b8ff;
+}
+
+/* === Empty State === */
+.empty-win {
+  text-align: center;
+  padding: 30px 20px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #c9b8ff;
+  line-height: 2;
+}
+
+/* === Toast === */
+.toast {
+  position: fixed;
+  bottom: 78px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff0f5;
+  border: 3px solid #ff8fab;
+  box-shadow: 3px 3px 0 #c9607a;
+  padding: 8px 16px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #c9607a;
+  z-index: 200;
+  white-space: nowrap;
+  animation: slideDown 0.3s ease;
+}
+
+/* === Achievement Popup === */
+.achieve-pop {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  background: #fff0f5;
+  border: 3px solid #ffd166;
+  box-shadow: 4px 4px 0 #b8860b;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideDown 0.4s ease;
+  min-width: 280px;
+  max-width: 360px;
+}
+
+.achieve-pop-icon {
+  font-size: 28px;
+  animation: shake 0.5s ease-in-out 3;
+}
+
+.achieve-pop-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #b8860b;
+}
+
+.achieve-pop-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: #9b72cf;
+  margin-top: 4px;
+}
+
+/* === Loading Screen === */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: #fce4f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loading-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  color: #9b72cf;
+  text-shadow: 2px 2px 0 #c9b8ff;
+  animation: blink 1s infinite;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.loading-dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #9b72cf;
+  animation: blink 1s infinite;
+}
+
+.loading-dot:nth-child(1) {
+  background: #ff8fab;
+  animation-delay: 0s;
+}
+
+.loading-dot:nth-child(2) {
+  background: #c9b8ff;
+  animation-delay: 0.3s;
+}
+
+.loading-dot:nth-child(3) {
+  background: #ffd166;
+  animation-delay: 0.6s;
+}
