@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
+import './styles/inline.css';
 
 // Инициализируем Telegram WebApp
 // Объект window.Telegram.WebApp доступен после загрузки SDK из index.html

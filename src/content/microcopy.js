@@ -50,24 +50,6 @@ export const PROGRESS_MICROCOPY = {
 };
 
 /**
- * Сообщения о саде
- */
-export const GARDEN_MICROCOPY = {
-  // Рост
-  gardenGrew: 'Сад стал чуть живее',
-  newObject: 'В саду появилось новое',
-  objectUpgraded: 'Росток окреп',
-  
-  // Стадии
-  stageUp: 'Сад перешёл на новую стадию',
-  stageDescription: 'То, что ты выращиваешь внутри, становится видимым',
-  
-  // Уход
-  gardenWaits: 'Сад терпеливо ждёт твоего возвращения',
-  gardenGrows: 'Каждая практика питает сад',
-};
-
-/**
  * Сообщения о достижениях
  */
 export const ACHIEVEMENT_MICROCOPY = {
@@ -83,7 +65,6 @@ export const ACHIEVEMENT_MICROCOPY = {
   seven_dawns: 'Семь рассветов — неделя осознанности',
   lunar_cycle: 'Лунный круг — две недели практики',
   roots_of_steadiness: 'Корни устойчивости глубоки',
-  first_lotus: 'Первый лотос расцвёл в саду',
 };
 
 /**
@@ -125,7 +106,6 @@ export const FORM_MICROCOPY = {
 export const EMPTY_STATE_MICROCOPY = {
   noWorkouts: 'Пока нет практик. Нажми + чтобы начать.',
   noAchievements: 'Достижения появятся по мере практики',
-  emptyGarden: 'Сад ждёт первой практики',
   emptyHistory: 'История практики пуста. Самое время начать.',
 };
 
@@ -135,7 +115,6 @@ export const EMPTY_STATE_MICROCOPY = {
 export const ACTION_MICROCOPY = {
   addPractice: 'Записать практику',
   savePractice: 'Сохранить практику',
-  viewGarden: 'Посмотреть сад',
   viewAchievements: 'Достижения',
   viewStats: 'Статистика',
   close: 'Закрыть',

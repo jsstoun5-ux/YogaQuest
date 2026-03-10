@@ -9,13 +9,12 @@ import { calcStreak } from '../constants/achievements.js';
  * Категории достижений
  */
 export const ACHIEVEMENT_CATEGORIES = {
-  FIRST_STEPS: 'first_steps',
-  REGULARITY: 'regularity',
-  DEPTH: 'depth',
+  BASICS: 'basics',
+  STREAK: 'streak',
+  DURATION: 'duration',
   DIVERSITY: 'diversity',
   MOOD: 'mood',
-  GARDEN: 'garden',
-  SPECIAL: 'special',
+  DEDICATION: 'dedication',
 };
 
 /**
@@ -40,13 +39,13 @@ export const ACHIEVEMENT_XP_REWARDS = {
  * Список всех 20 достижений
  */
 export const ACHIEVEMENT_LIST = [
-  // === КАТЕГОРИЯ "ПЕРВЫЕ ШАГИ" ===
+  // === КАТЕГОРИЯ "БАЗОВЫЕ" ===
   {
     id: 'first_bow',
     title: 'Первый поклон',
     titleEn: 'First Bow',
     description: 'Отметить первую практику.',
-    category: ACHIEVEMENT_CATEGORIES.FIRST_STEPS,
+    category: ACHIEVEMENT_CATEGORIES.BASICS,
     rarity: ACHIEVEMENT_RARITIES.COMMON,
     icon: '🙏',
     xpReward: ACHIEVEMENT_XP_REWARDS.common,
@@ -55,13 +54,17 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return workouts.length >= 1;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: workouts.length, target: 1, unit: 'практика' };
+    },
   },
   {
     id: 'three_returns',
     title: 'Три возвращения',
     titleEn: 'Three Returns',
     description: 'Отметить 3 практики.',
-    category: ACHIEVEMENT_CATEGORIES.FIRST_STEPS,
+    category: ACHIEVEMENT_CATEGORIES.BASICS,
     rarity: ACHIEVEMENT_RARITIES.COMMON,
     icon: '🌿',
     xpReward: ACHIEVEMENT_XP_REWARDS.common,
@@ -70,13 +73,17 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return workouts.length >= 3;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: workouts.length, target: 3, unit: 'практики' };
+    },
   },
   {
     id: 'thread_of_rhythm',
     title: 'Нить ритма',
     titleEn: 'Thread of Rhythm',
     description: 'Отметить 10 практик.',
-    category: ACHIEVEMENT_CATEGORIES.FIRST_STEPS,
+    category: ACHIEVEMENT_CATEGORIES.BASICS,
     rarity: ACHIEVEMENT_RARITIES.COMMON,
     icon: '📿',
     xpReward: ACHIEVEMENT_XP_REWARDS.common,
@@ -85,13 +92,17 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return workouts.length >= 10;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: workouts.length, target: 10, unit: 'практик' };
+    },
   },
   {
     id: 'foundation_of_path',
     title: 'Основание пути',
     titleEn: 'Foundation of the Path',
     description: 'Отметить 25 практик.',
-    category: ACHIEVEMENT_CATEGORIES.FIRST_STEPS,
+    category: ACHIEVEMENT_CATEGORIES.BASICS,
     rarity: ACHIEVEMENT_RARITIES.RARE,
     icon: '🪨',
     xpReward: ACHIEVEMENT_XP_REWARDS.rare,
@@ -100,15 +111,19 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return workouts.length >= 25;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: workouts.length, target: 25, unit: 'практик' };
+    },
   },
 
-  // === КАТЕГОРИЯ "РЕГУЛЯРНОСТЬ" ===
+  // === КАТЕГОРИЯ "СЕРИЯ" ===
   {
     id: 'quiet_flame',
     title: 'Тихий огонь',
     titleEn: 'Quiet Flame',
     description: 'Практиковать 3 дня подряд.',
-    category: ACHIEVEMENT_CATEGORIES.REGULARITY,
+    category: ACHIEVEMENT_CATEGORIES.STREAK,
     rarity: ACHIEVEMENT_RARITIES.COMMON,
     icon: '🕯️',
     xpReward: ACHIEVEMENT_XP_REWARDS.common,
@@ -117,13 +132,17 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return calcStreak(workouts) >= 3;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: calcStreak(workouts), target: 3, unit: 'дней подряд' };
+    },
   },
   {
     id: 'seven_dawns',
     title: 'Семь рассветов',
     titleEn: 'Seven Dawns',
     description: 'Практиковать 7 дней подряд.',
-    category: ACHIEVEMENT_CATEGORIES.REGULARITY,
+    category: ACHIEVEMENT_CATEGORIES.STREAK,
     rarity: ACHIEVEMENT_RARITIES.RARE,
     icon: '🌅',
     xpReward: ACHIEVEMENT_XP_REWARDS.rare,
@@ -132,13 +151,17 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return calcStreak(workouts) >= 7;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: calcStreak(workouts), target: 7, unit: 'дней подряд' };
+    },
   },
   {
     id: 'lunar_cycle',
     title: 'Лунный круг',
     titleEn: 'Lunar Cycle',
     description: 'Практиковать 14 дней подряд.',
-    category: ACHIEVEMENT_CATEGORIES.REGULARITY,
+    category: ACHIEVEMENT_CATEGORIES.STREAK,
     rarity: ACHIEVEMENT_RARITIES.RARE,
     icon: '🌙',
     xpReward: ACHIEVEMENT_XP_REWARDS.rare,
@@ -147,13 +170,17 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return calcStreak(workouts) >= 14;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: calcStreak(workouts), target: 14, unit: 'дней подряд' };
+    },
   },
   {
     id: 'roots_of_steadiness',
     title: 'Корни устойчивости',
     titleEn: 'Roots of Steadiness',
     description: 'Практиковать 30 дней подряд.',
-    category: ACHIEVEMENT_CATEGORIES.REGULARITY,
+    category: ACHIEVEMENT_CATEGORIES.STREAK,
     rarity: ACHIEVEMENT_RARITIES.LEGENDARY,
     icon: '🌳',
     xpReward: ACHIEVEMENT_XP_REWARDS.legendary,
@@ -162,15 +189,19 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return calcStreak(workouts) >= 30;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: calcStreak(workouts), target: 30, unit: 'дней подряд' };
+    },
   },
 
-  // === КАТЕГОРИЯ "ГЛУБИНА" ===
+  // === КАТЕГОРИЯ "ДЛИТЕЛЬНОСТЬ" ===
   {
     id: 'full_hour',
     title: 'Полный час',
     titleEn: 'Full Hour',
     description: 'Выполнить практику 60+ минут.',
-    category: ACHIEVEMENT_CATEGORIES.DEPTH,
+    category: ACHIEVEMENT_CATEGORIES.DURATION,
     rarity: ACHIEVEMENT_RARITIES.COMMON,
     icon: '⏳',
     xpReward: ACHIEVEMENT_XP_REWARDS.common,
@@ -179,13 +210,18 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return workouts.some(w => w.duration >= 60);
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const maxDuration = workouts.length > 0 ? Math.max(...workouts.map(w => w.duration || 0)) : 0;
+      return { current: maxDuration, target: 60, unit: 'минут' };
+    },
   },
   {
     id: 'long_breath',
     title: 'Долгое дыхание',
     titleEn: 'Long Breath',
     description: 'Выполнить практику 90+ минут.',
-    category: ACHIEVEMENT_CATEGORIES.DEPTH,
+    category: ACHIEVEMENT_CATEGORIES.DURATION,
     rarity: ACHIEVEMENT_RARITIES.RARE,
     icon: '🌊',
     xpReward: ACHIEVEMENT_XP_REWARDS.rare,
@@ -194,13 +230,18 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       return workouts.some(w => w.duration >= 90);
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const maxDuration = workouts.length > 0 ? Math.max(...workouts.map(w => w.duration || 0)) : 0;
+      return { current: maxDuration, target: 90, unit: 'минут' };
+    },
   },
   {
     id: 'gathered_presence',
     title: 'Собранное присутствие',
     titleEn: 'Gathered Presence',
     description: 'Набрать суммарно 10 часов практики.',
-    category: ACHIEVEMENT_CATEGORIES.DEPTH,
+    category: ACHIEVEMENT_CATEGORIES.DURATION,
     rarity: ACHIEVEMENT_RARITIES.RARE,
     icon: '📿',
     xpReward: ACHIEVEMENT_XP_REWARDS.rare,
@@ -210,13 +251,18 @@ export const ACHIEVEMENT_LIST = [
       const totalMinutes = workouts.reduce((sum, w) => sum + (w.duration || 0), 0);
       return totalMinutes >= 600; // 10 часов = 600 минут
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const totalMinutes = workouts.reduce((sum, w) => sum + (w.duration || 0), 0);
+      return { current: Math.floor(totalMinutes / 60), target: 10, unit: 'часов' };
+    },
   },
   {
     id: 'space_within',
     title: 'Пространство внутри',
     titleEn: 'Space Within',
     description: 'Набрать суммарно 25 часов практики.',
-    category: ACHIEVEMENT_CATEGORIES.DEPTH,
+    category: ACHIEVEMENT_CATEGORIES.DURATION,
     rarity: ACHIEVEMENT_RARITIES.LEGENDARY,
     icon: '🪷',
     xpReward: ACHIEVEMENT_XP_REWARDS.legendary,
@@ -225,6 +271,11 @@ export const ACHIEVEMENT_LIST = [
       const workouts = userData.workouts || [];
       const totalMinutes = workouts.reduce((sum, w) => sum + (w.duration || 0), 0);
       return totalMinutes >= 1500; // 25 часов = 1500 минут
+    },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const totalMinutes = workouts.reduce((sum, w) => sum + (w.duration || 0), 0);
+      return { current: Math.floor(totalMinutes / 60), target: 25, unit: 'часов' };
     },
   },
 
@@ -244,6 +295,11 @@ export const ACHIEVEMENT_LIST = [
       const types = new Set(workouts.map(w => w.type).filter(Boolean));
       return types.size >= 5;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const types = new Set(workouts.map(w => w.type).filter(Boolean));
+      return { current: types.size, target: 5, unit: 'типов' };
+    },
   },
   {
     id: 'wholeness',
@@ -260,6 +316,13 @@ export const ACHIEVEMENT_LIST = [
       const types = new Set(workouts.map(w => w.type).filter(Boolean));
       const mainTypes = ['power', 'soft', 'restore', 'meditate', 'integrate', 'stretch'];
       return mainTypes.every(t => types.has(t));
+    },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const types = new Set(workouts.map(w => w.type).filter(Boolean));
+      const mainTypes = ['power', 'soft', 'restore', 'meditate', 'integrate', 'stretch'];
+      const foundTypes = mainTypes.filter(t => types.has(t));
+      return { current: foundTypes.length, target: mainTypes.length, unit: 'типов' };
     },
   },
   {
@@ -278,6 +341,12 @@ export const ACHIEVEMENT_LIST = [
       const calmCount = workouts.filter(w => calmTypes.includes(w.type)).length;
       return calmCount >= 5;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const calmTypes = ['meditate', 'restore'];
+      const calmCount = workouts.filter(w => calmTypes.includes(w.type)).length;
+      return { current: calmCount, target: 5, unit: 'практик' };
+    },
   },
   {
     id: 'strength_and_softness',
@@ -295,6 +364,18 @@ export const ACHIEVEMENT_LIST = [
       const softTypes = ['soft', 'restore', 'stretch'];
       const softCount = workouts.filter(w => softTypes.includes(w.type)).length;
       return powerCount >= 3 && softCount >= 3;
+    },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const powerCount = workouts.filter(w => w.type === 'power').length;
+      const softTypes = ['soft', 'restore', 'stretch'];
+      const softCount = workouts.filter(w => softTypes.includes(w.type)).length;
+      return { 
+        current: Math.min(powerCount, softCount), 
+        target: 3, 
+        unit: 'пар',
+        details: { power: powerCount, soft: softCount }
+      };
     },
   },
 
@@ -316,6 +397,13 @@ export const ACHIEVEMENT_LIST = [
       ).length;
       return improvedCount >= 5;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const improvedCount = workouts.filter(w => 
+        w.moodBefore != null && w.moodAfter != null && w.moodAfter > w.moodBefore
+      ).length;
+      return { current: improvedCount, target: 5, unit: 'раз' };
+    },
   },
   {
     id: 'honest_presence',
@@ -334,6 +422,13 @@ export const ACHIEVEMENT_LIST = [
       ).length;
       return filledCount >= 10;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const filledCount = workouts.filter(w => 
+        w.moodBefore != null && w.moodAfter != null
+      ).length;
+      return { current: filledCount, target: 10, unit: 'раз' };
+    },
   },
   {
     id: 'warm_heart',
@@ -350,23 +445,31 @@ export const ACHIEVEMENT_LIST = [
       const happyCount = workouts.filter(w => w.moodAfter === 5).length;
       return happyCount >= 10;
     },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      const happyCount = workouts.filter(w => w.moodAfter === 5).length;
+      return { current: happyCount, target: 10, unit: 'практик' };
+    },
   },
 
-  // === КАТЕГОРИЯ "САД" ===
+  // === КАТЕГОРИЯ "ПРЕДАННОСТЬ ПРАКТИКЕ" ===
   {
-    id: 'first_lotus',
-    title: 'Первый лотос',
-    titleEn: 'First Lotus',
-    description: 'Довести сад до стадии, где появляется первый цветок лотоса.',
-    category: ACHIEVEMENT_CATEGORIES.GARDEN,
+    id: 'path_continues',
+    title: 'Путь продолжается',
+    titleEn: 'The Path Continues',
+    description: 'Отметить 50 практик.',
+    category: ACHIEVEMENT_CATEGORIES.DEDICATION,
     rarity: ACHIEVEMENT_RARITIES.LEGENDARY,
-    icon: '🪷',
+    icon: '🌟',
     xpReward: ACHIEVEMENT_XP_REWARDS.legendary,
     secret: false,
     checkCondition: (userData) => {
       const workouts = userData.workouts || [];
-      // Лотос появляется на стадии 7 (60-89 практик)
-      return workouts.length >= 60;
+      return workouts.length >= 50;
+    },
+    getProgress: (userData) => {
+      const workouts = userData.workouts || [];
+      return { current: workouts.length, target: 50, unit: 'практик' };
     },
   },
 ];
@@ -412,20 +515,20 @@ export function getVisibleAchievements() {
  */
 export function getCategoriesWithLabels() {
   return {
-    [ACHIEVEMENT_CATEGORIES.FIRST_STEPS]: {
-      id: ACHIEVEMENT_CATEGORIES.FIRST_STEPS,
-      label: 'Первые шаги',
+    [ACHIEVEMENT_CATEGORIES.BASICS]: {
+      id: ACHIEVEMENT_CATEGORIES.BASICS,
+      label: 'Базовые',
       icon: '🌱',
     },
-    [ACHIEVEMENT_CATEGORIES.REGULARITY]: {
-      id: ACHIEVEMENT_CATEGORIES.REGULARITY,
-      label: 'Регулярность',
+    [ACHIEVEMENT_CATEGORIES.STREAK]: {
+      id: ACHIEVEMENT_CATEGORIES.STREAK,
+      label: 'Серия',
       icon: '🔥',
     },
-    [ACHIEVEMENT_CATEGORIES.DEPTH]: {
-      id: ACHIEVEMENT_CATEGORIES.DEPTH,
-      label: 'Глубина',
-      icon: '🌊',
+    [ACHIEVEMENT_CATEGORIES.DURATION]: {
+      id: ACHIEVEMENT_CATEGORIES.DURATION,
+      label: 'Длительность',
+      icon: '⏱️',
     },
     [ACHIEVEMENT_CATEGORIES.DIVERSITY]: {
       id: ACHIEVEMENT_CATEGORIES.DIVERSITY,
@@ -437,14 +540,9 @@ export function getCategoriesWithLabels() {
       label: 'Настроение',
       icon: '💫',
     },
-    [ACHIEVEMENT_CATEGORIES.GARDEN]: {
-      id: ACHIEVEMENT_CATEGORIES.GARDEN,
-      label: 'Сад',
-      icon: '🌸',
-    },
-    [ACHIEVEMENT_CATEGORIES.SPECIAL]: {
-      id: ACHIEVEMENT_CATEGORIES.SPECIAL,
-      label: 'Особые',
+    [ACHIEVEMENT_CATEGORIES.DEDICATION]: {
+      id: ACHIEVEMENT_CATEGORIES.DEDICATION,
+      label: 'Преданность',
       icon: '✨',
     },
   };

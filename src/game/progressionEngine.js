@@ -45,7 +45,6 @@ export class ProgressionEngine {
       levelUp: null,
       returnBonus: null,
       newAchievements: [],
-      gardenGrowth: null,
     };
 
     // Рассчитываем XP за практику

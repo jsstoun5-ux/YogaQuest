@@ -1,6 +1,6 @@
 /**
  * useProgression Hook for YogaQuest
- * Хук для управления прогрессом пользователя (XP, уровни, достижения, сад)
+ * Хук для управления прогрессом пользователя (XP, уровни, достижения)
  */
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { calculateWorkoutXP, checkReturnBonus, XP_CONFIG } from '../game/xpSystem.js';
@@ -8,8 +8,6 @@ import { getLevelByXP, getLevelProgress, checkLevelUp } from '../game/levelSyste
 import { calculateFullProgress } from '../game/progressionEngine.js';
 import { checkNewAchievements, getAchievementsProgress } from '../achievements/checkAchievements.js';
 import { ACHIEVEMENT_LIST } from '../achievements/achievementList.js';
-import { calculateGardenState, getGardenGrowthTexts } from '../garden/gardenEngine.js';
-import { checkGardenStageUp } from '../garden/gardenStages.js';
 import { getLocalDateStr } from '../utils/dateUtils.js';
 import { Storage } from '../utils/storage.js';
 import { ServerStorage } from '../utils/serverStorage.js';
@@ -158,7 +156,6 @@ export function useProgression(workouts, tg, telegramId) {
         level: getLevelByXP(profile.totalXP),
         levelProgress: getLevelProgress(profile.totalXP),
         achievements: getAchievementsProgress({ workouts: [] }),
-        garden: calculateGardenState([]),
       };
     }
     
@@ -176,15 +173,11 @@ export function useProgression(workouts, tg, telegramId) {
     // Достижения
     const achievements = getAchievementsProgress({ workouts });
     
-    // Сад
-    const garden = calculateGardenState(workouts, profile.unlockedAchievementIds);
-    
     return {
       totalXP: profile.totalXP,
       level,
       levelProgress,
       achievements,
-      garden,
       ...fullProgress,
     };
   }, [workouts, profile]);
@@ -251,17 +244,6 @@ export function useProgression(workouts, tg, telegramId) {
     const achievementXP = newAchievements.reduce((sum, a) => sum + a.xpReward, 0);
     const finalXP = newXP + achievementXP;
     
-    // Проверяем рост сада
-    const previousPracticeCount = workouts.length;
-    const newPracticeCount = previousPracticeCount + 1;
-    const gardenStageUp = checkGardenStageUp(previousPracticeCount, newPracticeCount);
-    
-    const gardenGrowth = getGardenGrowthTexts({
-      stageUp: gardenStageUp,
-      newObjects: [],
-      objectUpgrades: [],
-    });
-    
     // Обновляем профиль
     setProfile(prev => ({
       ...prev,
@@ -279,7 +261,6 @@ export function useProgression(workouts, tg, telegramId) {
       returnBonus: returnCheck.eligible ? { xp: returnBonusXP, daysAway: returnCheck.daysSinceLastPractice } : null,
       levelUp,
       newAchievements,
-      gardenGrowth,
       finalXP,
     };
   }, [workouts, profile]);

@@ -1,0 +1,9 @@
+/* Inline styles for HTML */
+/* Запрещаем overscroll и bounce-эффект iOS */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+/* Убираем мигание при тапе на iOS */
+* { -webkit-tap-highlight-color: transparent; }

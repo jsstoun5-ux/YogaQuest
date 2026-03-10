@@ -1,6 +1,6 @@
 /**
  * Unit Tests for YogaQuest Progression System
- * Тесты для XP, уровней, достижений и сада
+ * Тесты для XP, уровней и достижений
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -351,105 +351,10 @@ describe('Achievement System', () => {
   });
 });
 
-// Garden System Tests
-import {
-  getGardenStage,
-  getGardenProgress,
-  checkGardenStageUp,
-  GARDEN_STAGES,
-} from '../garden/gardenStages.js';
-
-import { calculateGardenState } from '../garden/gardenEngine.js';
-
-describe('Garden System', () => {
-  describe('getGardenStage', () => {
-    it('should return stage 0 for 0 practices', () => {
-      const stage = getGardenStage(0);
-      expect(stage.stage).toBe(0);
-      expect(stage.id).toBe('empty_plot');
-    });
-
-    it('should return stage 1 for 1-2 practices', () => {
-      expect(getGardenStage(1).stage).toBe(1);
-      expect(getGardenStage(2).stage).toBe(1);
-    });
-
-    it('should return stage 3 for 7-14 practices', () => {
-      expect(getGardenStage(7).stage).toBe(3);
-      expect(getGardenStage(10).stage).toBe(3);
-      expect(getGardenStage(14).stage).toBe(3);
-    });
-
-    it('should return stage 8 for 90+ practices', () => {
-      const stage = getGardenStage(90);
-      expect(stage.stage).toBe(8);
-      expect(stage.id).toBe('garden_of_serenity');
-    });
-  });
-
-  describe('getGardenProgress', () => {
-    it('should calculate progress correctly', () => {
-      const progress = getGardenProgress(5);
-      expect(progress.currentStage.stage).toBe(2);
-      expect(progress.progressPercent).toBeGreaterThanOrEqual(0);
-      expect(progress.progressPercent).toBeLessThanOrEqual(100);
-    });
-
-    it('should return 100% for max stage', () => {
-      const progress = getGardenProgress(100);
-      expect(progress.isMaxStage).toBe(true);
-      expect(progress.progressPercent).toBe(100);
-    });
-  });
-
-  describe('checkGardenStageUp', () => {
-    it('should return null if no stage up', () => {
-      const result = checkGardenStageUp(5, 6);
-      expect(result).toBeNull();
-    });
-
-    it('should return stage up info when stage increases', () => {
-      const result = checkGardenStageUp(2, 3);
-      expect(result).not.toBeNull();
-      expect(result.previousStage.stage).toBe(1);
-      expect(result.newStage.stage).toBe(2);
-    });
-  });
-
-  describe('calculateGardenState', () => {
-    it('should return correct state for empty workouts', () => {
-      const state = calculateGardenState([]);
-      expect(state.stage.stage).toBe(0);
-      expect(state.activeObjects.length).toBe(0);
-    });
-
-    it('should calculate objects from practice types', () => {
-      const workouts = [
-        { type: 'meditate', duration: 30 },
-        { type: 'meditate', duration: 30 },
-      ];
-      const state = calculateGardenState(workouts);
-      expect(state.stage.stage).toBe(1);
-    });
-
-    it('should include mood-based objects', () => {
-      const workouts = [
-        { type: 'power', moodBefore: 2, moodAfter: 4 },
-        { type: 'power', moodBefore: 2, moodAfter: 4 },
-        { type: 'power', moodBefore: 2, moodAfter: 4 },
-        { type: 'power', moodBefore: 2, moodAfter: 4 },
-        { type: 'power', moodBefore: 2, moodAfter: 4 },
-      ];
-      const state = calculateGardenState(workouts);
-      expect(state.moodStats.improvementCount).toBe(5);
-    });
-  });
-});
-
 // Integration Tests
 describe('Integration Tests', () => {
   describe('Full progression flow', () => {
-    it('should calculate XP, level, achievements, and garden together', () => {
+    it('should calculate XP, level and achievements together', () => {
       const workouts = [
         { id: 1, date: '2024-01-01', type: 'power', duration: 60, moodBefore: 2, moodAfter: 4 },
         { id: 2, date: '2024-01-02', type: 'soft', duration: 45, moodBefore: 3, moodAfter: 4 },
@@ -459,15 +364,10 @@ describe('Integration Tests', () => {
       // Check achievements
       const achievements = checkAllAchievements({ workouts });
       expect(achievements.length).toBeGreaterThan(0);
-
-      // Check garden
-      const gardenState = calculateGardenState(workouts);
-      expect(gardenState.stage.stage).toBe(2);
     });
 
     it('should handle edge cases gracefully', () => {
       // Empty data
-      expect(() => calculateGardenState([])).not.toThrow();
       expect(() => checkAllAchievements({ workouts: [] })).not.toThrow();
       
       // Missing fields
@@ -476,7 +376,7 @@ describe('Integration Tests', () => {
         { id: 2, type: null },
         { id: 3, duration: null },
       ];
-      expect(() => calculateGardenState(incompleteWorkouts)).not.toThrow();
+      expect(() => checkAllAchievements({ workouts: incompleteWorkouts })).not.toThrow();
     });
   });
 });

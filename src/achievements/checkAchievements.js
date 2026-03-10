@@ -11,7 +11,7 @@ import {
 
 /**
  * Проверить все достижения и вернуть разблокированные
- * @param {object} userData - Данные пользователя { workouts, streak, gardenStage, ... }
+ * @param {object} userData - Данные пользователя { workouts, streak, ... }
  * @returns {Array} Массив разблокированных достижений
  */
 export function checkAllAchievements(userData) {
@@ -91,21 +91,78 @@ export function getAchievementsProgress(userData) {
 }
 
 /**
+ * Получить прогресс по конкретному достижению
+ * @param {string} achievementId - ID достижения
+ * @param {object} userData - Данные пользователя
+ * @returns {object|null} Объект с прогрессом или null
+ */
+export function getAchievementProgress(achievementId, userData) {
+  const achievement = getAchievementById(achievementId);
+  if (!achievement || !achievement.getProgress) return null;
+  
+  return achievement.getUserData ? achievement.getUserData(userData) : achievement.getProgress(userData);
+}
+
+/**
+ * Получить все достижения с прогрессом
+ * @param {object} userData - Данные пользователя
+ * @returns {Array} Массив достижений с прогрессом
+ */
+export function getAllAchievementsWithProgress(userData) {
+  return ACHIEVEMENT_LIST.map(achievement => {
+    const isUnlocked = achievement.checkCondition(userData);
+    const progress = achievement.getProgress ? achievement.getProgress(userData) : null;
+    
+    return {
+      ...achievement,
+      isUnlocked,
+      progress,
+      unlockedAt: isUnlocked ? new Date().toISOString() : null,
+    };
+  });
+}
+
+/**
  * Получить ближайшее неразблокированное достижение
  * @param {object} userData - Данные пользователя
  * @returns {object|null} Ближайшее достижение или null
  */
 export function getNextAchievement(userData) {
-  const progress = getAchievementsProgress(userData);
-  const locked = ACHIEVEMENT_LIST.filter(a => 
-    !progress.unlocked.find(u => u.id === a.id) && !a.secret
-  );
+  const allWithProgress = getAllAchievementsWithProgress(userData);
+  const locked = allWithProgress.filter(a => !a.isUnlocked && !a.secret);
   
   if (locked.length === 0) return null;
   
-  // Сортируем по "близости" - сначала те, которые ближе к разблокировке
-  // Для простоты возвращаем первое неразблокированное
+  // Сортируем по прогрессу (ближе к цели - выше)
+  locked.sort((a, b) => {
+    const progA = a.progress ? a.progress.current / a.progress.target : 0;
+    const progB = b.progress ? b.progress.current / b.progress.target : 0;
+    return progB - progA;
+  });
+  
   return locked[0];
+}
+
+/**
+ * Получить ближайшие неразблокированные достижения
+ * @param {object} userData - Данные пользователя
+ * @param {number} limit - Максимальное количество
+ * @returns {Array} Массив ближайших достижений
+ */
+export function getNearestAchievements(userData, limit = 3) {
+  const allWithProgress = getAllAchievementsWithProgress(userData);
+  const locked = allWithProgress.filter(a => !a.isUnlocked && !a.secret);
+  
+  if (locked.length === 0) return [];
+  
+  // Сортируем по прогрессу (ближе к цели - выше)
+  locked.sort((a, b) => {
+    const progA = a.progress ? a.progress.current / a.progress.target : 0;
+    const progB = b.progress ? b.progress.current / b.progress.target : 0;
+    return progB - progA;
+  });
+  
+  return locked.slice(0, limit);
 }
 
 /**
@@ -131,10 +188,12 @@ export function getAchievementWithState(achievementId, userData) {
   if (!achievement) return null;
   
   const isUnlocked = achievement.checkCondition(userData);
+  const progress = achievement.getProgress ? achievement.getProgress(userData) : null;
   
   return {
     ...achievement,
     isUnlocked,
+    progress,
     unlockedAt: isUnlocked ? new Date().toISOString() : null,
   };
 }
@@ -147,9 +206,11 @@ export function getAchievementWithState(achievementId, userData) {
 export function getAllAchievementsWithStates(userData) {
   return ACHIEVEMENT_LIST.map(achievement => {
     const isUnlocked = achievement.checkCondition(userData);
+    const progress = achievement.getProgress ? achievement.getProgress(userData) : null;
     return {
       ...achievement,
       isUnlocked,
+      progress,
       unlockedAt: isUnlocked ? new Date().toISOString() : null,
     };
   });
@@ -175,6 +236,7 @@ export function createAchievementCheckResult(userData, previouslyUnlocked = []) 
   const allUnlocked = checkAllAchievements(userData);
   const progress = getAchievementsProgress(userData);
   const nextAchievement = getNextAchievement(userData);
+  const nearestAchievements = getNearestAchievements(userData);
   
   return {
     newAchievements,
@@ -184,23 +246,8 @@ export function createAchievementCheckResult(userData, previouslyUnlocked = []) 
     totalUnlocked: allUnlocked.length,
     progress,
     nextAchievement,
+    nearestAchievements,
   };
-}
-
-/**
- * Хук для отслеживания достижений
- * @param {Array} workouts - Массив тренировок
- * @param {object} gardenData - Данные сада
- * @returns {object} Результат проверки
- */
-export function useAchievementChecker(workouts, gardenData = {}) {
-  const userData = {
-    workouts,
-    gardenStage: gardenData.stage || 0,
-    ...gardenData,
-  };
-  
-  return createAchievementCheckResult(userData);
 }
 
 export default {
@@ -208,11 +255,13 @@ export default {
   checkNewAchievements,
   checkCategoryAchievements,
   getAchievementsProgress,
+  getAchievementProgress,
+  getAllAchievementsWithProgress,
   getNextAchievement,
+  getNearestAchievements,
   isAchievementUnlocked,
   getAchievementWithState,
   getAllAchievementsWithStates,
   calculateNewAchievementsXP,
   createAchievementCheckResult,
-  useAchievementChecker,
 };

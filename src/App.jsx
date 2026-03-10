@@ -20,7 +20,6 @@ import {
   Navbar,
   Calendar,
 } from './components/pages/index.js';
-import { GardenScene, GardenPreview } from './components/garden/index.js';
 
 // Constants
 import { STORAGE_KEYS, PRACTICE_TYPES, MOODS } from './constants/index.js';
@@ -31,8 +30,6 @@ import { Storage, isOnboardingSeen, markOnboardingSeen } from './utils/storage.j
 
 // Styles
 import './styles/pixel.css';
-import './components/garden/GardenScene.css';
-import './components/garden/GardenPreview.css';
 import './components/ui/RewardModal.css';
 import './components/pages/LevelCard.css';
 
@@ -78,7 +75,7 @@ export default function YogaQuest() {
     haptic.success();
   }, tg);
 
-  // Прогресс (XP, уровни, сад) - передаём telegramId для серверного хранилища
+  // Прогресс (XP, уровни) - передаём telegramId для серверного хранилища
   const { progression, processNewWorkout } = useProgression(workouts, tg, telegramId);
 
   // Загрузка данных и проверка онбординга
@@ -254,7 +251,6 @@ export default function YogaQuest() {
           xpResult={rewardData?.xpBreakdown}
           levelUp={rewardData?.levelUp}
           newAchievements={rewardData?.newAchievements}
-          gardenGrowth={rewardData?.gardenGrowth}
         />
 
         {/* Achievement Popup */}
@@ -326,13 +322,6 @@ export default function YogaQuest() {
                 <LevelCard 
                   totalXP={progression?.totalXP || 0} 
                   workouts={workouts} 
-                />
-
-                {/* Garden Preview */}
-                <GardenPreview 
-                  workouts={workouts}
-                  onClick={() => setScreen("garden")}
-                  style={{ marginBottom: 12 }}
                 />
 
                 {/* Today's Workouts */}
@@ -427,23 +416,6 @@ export default function YogaQuest() {
               />
             )}
 
-            {/* GARDEN SCREEN */}
-            {screen === "garden" && (
-              <>
-                <GardenScene 
-                  workouts={workouts}
-                  unlockedAchievements={progression?.unlockedAchievements || []}
-                />
-                <PixelBtn
-                  variant="secondary"
-                  style={{ width: "100%", marginTop: 12 }}
-                  onClick={() => setScreen("home")}
-                >
-                  ← НАЗАД
-                </PixelBtn>
-              </>
-            )}
-
             {/* PROGRESS SCREEN */}
             {screen === "progress" && (
               <>
@@ -497,6 +469,7 @@ export default function YogaQuest() {
                 workouts={workouts}
                 level={stats.level}
                 onExport={handleExport}
+                progression={progression}
               />
             )}
           </div>

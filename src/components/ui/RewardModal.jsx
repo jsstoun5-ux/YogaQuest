@@ -5,7 +5,6 @@
 import { useEffect, useState } from 'react';
 import { getXPBreakdownTexts, formatXP } from '../../game/xpSystem.js';
 import { getLevelFullText } from '../../game/levelSystem.js';
-import { getGardenGrowthTexts } from '../../garden/gardenEngine.js';
 import './RewardModal.css';
 
 /**
@@ -52,13 +51,12 @@ function AchievementItem({ achievement, delay = 0 }) {
 /**
  * Модальное окно награды
  */
-export default function RewardModal({ 
-  isOpen, 
-  onClose, 
-  xpResult, 
-  levelUp, 
-  newAchievements,
-  gardenGrowth 
+export default function RewardModal({
+  isOpen,
+  onClose,
+  xpResult,
+  levelUp,
+  newAchievements
 }) {
   const [phase, setPhase] = useState(0);
   
@@ -76,14 +74,10 @@ export default function RewardModal({
       // Показываем достижения (если есть)
       const achieveTimer = setTimeout(() => setPhase(3), 1300);
       
-      // Показываем сад (если есть)
-      const gardenTimer = setTimeout(() => setPhase(4), 1800);
-      
       return () => {
         clearTimeout(xpTimer);
         clearTimeout(levelTimer);
         clearTimeout(achieveTimer);
-        clearTimeout(gardenTimer);
       };
     }
   }, [isOpen]);
@@ -143,16 +137,6 @@ export default function RewardModal({
                 achievement={achievement} 
                 delay={i * 200}
               />
-            ))}
-          </div>
-        )}
-        
-        {/* Рост сада */}
-        {phase >= 4 && gardenGrowth && gardenGrowth.length > 0 && (
-          <div className="reward-section">
-            <div className="reward-section-title">🌸 Сад</div>
-            {gardenGrowth.map((text, i) => (
-              <div key={i} className="reward-garden-text">{text}</div>
             ))}
           </div>
         )}
