@@ -54,7 +54,7 @@ export default function YogaQuest() {
   // Хранилище
   const storage = useMemo(() => new Storage(tg), [tg]);
   
-  // Тренировки (передаём telegramId для серверного хранилища)
+  // Тренировки
   const {
     workouts,
     isLoading,
@@ -62,7 +62,7 @@ export default function YogaQuest() {
     addWorkout,
     deleteWorkout,
     prevAchievementsRef,
-  } = useWorkouts(tg, telegramId);
+  } = useWorkouts(tg);
 
   // Достижения
   const {
@@ -75,8 +75,8 @@ export default function YogaQuest() {
     haptic.success();
   }, tg);
 
-  // Прогресс (XP, уровни) - передаём telegramId для серверного хранилища
-  const { progression, processNewWorkout } = useProgression(workouts, tg, telegramId);
+  // Прогресс (XP, уровни)
+  const { progression, processNewWorkout } = useProgression(workouts, tg);
 
   // Загрузка данных и проверка онбординга
   useEffect(() => {
