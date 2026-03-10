@@ -1,0 +1,357 @@
+/**
+ * RewardModal Styles
+ * Стили для модального окна награды
+ */
+
+/* Оверлей */
+.reward-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Модальное окно */
+.reward-modal {
+  background: linear-gradient(180deg, #FCE7F3 0%, #FDF2F8 100%);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 320px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  font-family: "'Press Start 2P', monospace";
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+  border: 3px solid #c9607a;
+  animation: slideUp 0.3s ease;
+}
+
+/* Заголовок */
+.reward-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed #ffb3c6;
+}
+
+.reward-header-icon {
+  font-size: 20px;
+  animation: sparkle 1s ease-in-out infinite;
+}
+
+.reward-header-text {
+  font-size: 8px;
+  color: #7c1d36;
+}
+
+/* Секция */
+.reward-section {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 2px solid #ffb3c6;
+}
+
+.reward-section--level {
+  background: linear-gradient(180deg, #ffd700 0%, #ffec8b 100%);
+  border-color: #daa520;
+}
+
+.reward-section-title {
+  font-size: 6px;
+  color: #5D4B8A;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* Общий XP */
+.reward-total-xp {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.reward-total-value {
+  font-size: 16px;
+  color: #7c1d36;
+  text-shadow: 2px 2px 0 #ffb3c6;
+  animation: pulse 0.5s ease;
+}
+
+/* Разбивка XP */
+.reward-xp-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reward-xp-text {
+  font-size: 5px;
+  color: #7E6AA8;
+  text-align: center;
+}
+
+.reward-xp-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.reward-xp-line--visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reward-xp-label {
+  font-size: 5px;
+  color: #5D4B8A;
+}
+
+.reward-xp-value {
+  font-size: 7px;
+  color: #7c1d36;
+}
+
+/* Уровень */
+.reward-level-badge {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.reward-level-icon {
+  font-size: 32px;
+  animation: bounce 0.5s ease;
+}
+
+.reward-level-info {
+  text-align: center;
+}
+
+.reward-level-title {
+  font-size: 6px;
+  color: #5D4B8A;
+  margin-bottom: 4px;
+}
+
+.reward-level-name {
+  font-size: 10px;
+  color: #7c1d36;
+  margin-bottom: 4px;
+}
+
+.reward-level-subtitle {
+  font-size: 5px;
+  color: #5D4B8A;
+  opacity: 0.8;
+}
+
+/* Достижение */
+.reward-achievement {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.reward-achievement--visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.reward-achievement-icon {
+  font-size: 24px;
+}
+
+.reward-achievement-info {
+  flex: 1;
+}
+
+.reward-achievement-title {
+  font-size: 7px;
+  color: #7c1d36;
+  margin-bottom: 3px;
+}
+
+.reward-achievement-desc {
+  font-size: 5px;
+  color: #5D4B8A;
+}
+
+/* Сад */
+.reward-garden-text {
+  font-size: 5px;
+  color: #5D4B8A;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+/* Кнопка закрытия */
+.reward-close {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(180deg, #ff8fab 0%, #ff6b8a 100%);
+  border: 2px solid #c9607a;
+  border-radius: 6px;
+  font-family: "'Press Start 2P', monospace";
+  font-size: 8px;
+  color: white;
+  cursor: pointer;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 3px 3px 0 #c9607a;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.reward-close:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 #c9607a;
+}
+
+.reward-close:active {
+  transform: translateY(0);
+  box-shadow: 2px 2px 0 #c9607a;
+}
+
+/* Подсказка */
+.reward-hint {
+  text-align: center;
+  font-size: 4px;
+  color: #c9b8ff;
+  margin-top: 10px;
+  opacity: 0.7;
+}
+
+/* Тост */
+.reward-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(180deg, #FCE7F3 0%, #FDF2F8 100%);
+  border: 3px solid #c9607a;
+  border-radius: 12px;
+  padding: 20px 30px;
+  font-family: "'Press Start 2P', monospace";
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: toastPop 0.3s ease;
+}
+
+.reward-toast-xp {
+  font-size: 20px;
+  color: #7c1d36;
+  text-shadow: 2px 2px 0 #ffb3c6;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes toastPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 320px) {
+  .reward-modal {
+    padding: 16px;
+  }
+  
+  .reward-header-text {
+    font-size: 7px;
+  }
+  
+  .reward-total-value {
+    font-size: 14px;
+  }
+  
+  .reward-level-icon {
+    font-size: 28px;
+  }
+  
+  .reward-level-name {
+    font-size: 9px;
+  }
+}

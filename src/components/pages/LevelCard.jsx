@@ -1,118 +1,94 @@
 /**
- * LevelCard — карточка уровня пользователя
+ * LevelCard Component for YogaQuest
+ * Карточка уровня с XP прогрессом
  */
-import { memo } from 'react';
-import { HeartBar } from '../ui/PixelHearts.jsx';
-import { getLevelProgress } from '../../constants/levels.js';
+import { useMemo } from 'react';
+import { getLevelProgress, getLevelByXP } from '../../game/levelSystem.js';
+import './LevelCard.css';
 
 /**
- * LevelCard — карточка уровня
- * @param {object} props - Свойства компонента
- * @param {number} props.workoutCount - Количество тренировок
+ * Карточка уровня
  */
-const LevelCard = memo(function LevelCard({ workoutCount }) {
-  const { currentLevel, nextLevel, remaining, isMaxLevel } = getLevelProgress(workoutCount);
-
+export default function LevelCard({ totalXP = 0, workouts = [] }) {
+  // Вычисляем прогресс уровня
+  const levelData = useMemo(() => {
+    // Если передан totalXP, используем его
+    if (totalXP > 0) {
+      return getLevelProgress(totalXP);
+    }
+    // Иначе вычисляем из количества тренировок (старый способ для совместимости)
+    const workoutCount = workouts.length;
+    // Примерная конвертация: 1 практика = ~15 XP в среднем
+    const estimatedXP = workoutCount * 15;
+    return getLevelProgress(estimatedXP);
+  }, [totalXP, workouts]);
+  
+  const { currentLevel, nextLevel, progressPercent, xpToNextLevel, isMaxLevel } = levelData;
+  
   return (
-    <div
-      className="pwin pwin-yellow"
-      style={{
-        background: "#fff9c4",
-        border: "3px solid #b8860b",
-        boxShadow: "4px 4px 0 #b8860b",
-        marginBottom: 14,
-      }}
-    >
-      {/* Header */}
-      <div
-        className="pwin-title"
-        style={{
-          background: "linear-gradient(90deg, #ffd166, #ffe599)",
-          padding: "5px 8px",
-          borderBottom: "2px solid #b8860b",
-          display: "flex",
-          alignItems: "center",
-          gap: "5px",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "'Press Start 2P', monospace",
-            fontSize: "7px",
-            color: "#3d2800",
-            textShadow: "1px 1px 0 #ffe599",
-            flex: 1,
-          }}
-        >
-          УРОВЕНЬ.EXE
-        </span>
-        <div
-          className="win-btn"
-          style={{
-            width: 14,
-            height: 14,
-            background: "#fff9c4",
-            border: "2px solid #b8860b",
-            fontSize: 7,
-            color: "#7a5900",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "'Press Start 2P', monospace",
-          }}
-        >
-          —
-        </div>
-        <div
-          className="win-btn"
-          style={{
-            width: 14,
-            height: 14,
-            background: "#fff9c4",
-            border: "2px solid #b8860b",
-            fontSize: 7,
-            color: "#7a5900",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "'Press Start 2P', monospace",
-          }}
-        >
-          ✕
+    <div className="level-card">
+      {/* Иконка и название уровня */}
+      <div className="level-card-header">
+        <span className="level-card-icon">{currentLevel.icon}</span>
+        <div className="level-card-info">
+          <div className="level-card-number">Уровень {currentLevel.level}</div>
+          <div className="level-card-title">{currentLevel.title}</div>
         </div>
       </div>
-
-      {/* Body */}
-      <div style={{ padding: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <span style={{ fontSize: 28 }}>{currentLevel.icon}</span>
-          <div>
-            <div
-              style={{
-                fontFamily: "'Press Start 2P', monospace",
-                fontSize: "9px",
-                color: "#7a5900",
-                textShadow: "1px 1px 0 #ffe599",
-              }}
-            >
-              {currentLevel.label}
-            </div>
-            <div
-              style={{
-                fontFamily: "'Press Start 2P', monospace",
-                fontSize: "6px",
-                color: "#b8860b",
-                marginTop: 4,
-              }}
-            >
-              {isMaxLevel ? "МАКСИМАЛЬНЫЙ УРОВЕНЬ!" : `ЕЩЁ ${remaining} ДО СЛЕД.`}
-            </div>
+      
+      {/* Подпись уровня */}
+      <div className="level-card-subtitle">{currentLevel.subtitle}</div>
+      
+      {/* Прогресс бар */}
+      {!isMaxLevel && (
+        <div className="level-card-progress">
+          <div className="level-card-progress-bar">
+            <div 
+              className="level-card-progress-fill"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <div className="level-card-progress-text">
+            {xpToNextLevel} XP до {nextLevel?.title}
           </div>
         </div>
-        <HeartBar value={workoutCount} max={isMaxLevel ? workoutCount : (nextLevel?.minWorkouts || 60)} />
-      </div>
+      )}
+      
+      {/* Максимальный уровень */}
+      {isMaxLevel && (
+        <div className="level-card-max">
+          ✨ Максимальный уровень ✨
+        </div>
+      )}
     </div>
   );
-});
+}
 
-export { LevelCard };
+/**
+ * Компактная версия карточки уровня
+ */
+export function LevelCardCompact({ totalXP = 0 }) {
+  const levelData = useMemo(() => {
+    return getLevelProgress(totalXP);
+  }, [totalXP]);
+  
+  const { currentLevel, progressPercent, isMaxLevel } = levelData;
+  
+  return (
+    <div className="level-card-compact">
+      <span className="level-card-compact-icon">{currentLevel.icon}</span>
+      <div className="level-card-compact-info">
+        <div className="level-card-compact-level">{currentLevel.level}</div>
+        <div className="level-card-compact-title">{currentLevel.title}</div>
+      </div>
+      {!isMaxLevel && (
+        <div className="level-card-compact-bar">
+          <div 
+            className="level-card-compact-fill"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,14 +1,15 @@
 /**
  * YogaQuest — Telegram Mini App
- * Главный компонент приложения
+ * Главный компонент приложения с системой прогресса
  */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTelegram } from './hooks/useTelegram.js';
 import { useWorkouts } from './hooks/useWorkouts.js';
 import { useAchievements } from './hooks/useAchievements.js';
+import { useProgression } from './hooks/useProgression.js';
 
 // Components
-import { PixelHearts, PixelBtn, SaveModal } from './components/ui/index.js';
+import { PixelHearts, PixelBtn, SaveModal, RewardModal } from './components/ui/index.js';
 import {
   Onboarding,
   PracticeForm,
@@ -19,6 +20,7 @@ import {
   Navbar,
   Calendar,
 } from './components/pages/index.js';
+import { GardenScene, GardenPreview } from './components/garden/index.js';
 
 // Constants
 import { STORAGE_KEYS, PRACTICE_TYPES, MOODS } from './constants/index.js';
@@ -29,6 +31,10 @@ import { Storage, isOnboardingSeen, markOnboardingSeen } from './utils/storage.j
 
 // Styles
 import './styles/pixel.css';
+import './components/garden/GardenScene.css';
+import './components/garden/GardenPreview.css';
+import './components/ui/RewardModal.css';
+import './components/pages/LevelCard.css';
 
 /**
  * Главный компонент приложения
@@ -43,6 +49,10 @@ export default function YogaQuest() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [exportMsg, setExportMsg] = useState(false);
+  
+  // Состояния для награды
+  const [showReward, setShowReward] = useState(false);
+  const [rewardData, setRewardData] = useState(null);
   
   // Хранилище
   const storage = useMemo(() => new Storage(tg), [tg]);
@@ -67,6 +77,9 @@ export default function YogaQuest() {
   } = useAchievements(workouts, (achievement) => {
     haptic.success();
   }, tg);
+
+  // Прогресс (XP, уровни, сад)
+  const { progression, processNewWorkout } = useProgression(workouts, tg);
 
   // Загрузка данных и проверка онбординга
   useEffect(() => {
@@ -98,13 +111,38 @@ export default function YogaQuest() {
    * Обработчик добавления тренировки
    */
   const handleAddWorkout = useCallback((form) => {
+    // Добавляем тренировку
     addWorkout(form);
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      setScreen("home");
-    }, 1500);
-  }, [addWorkout]);
+    
+    // Обрабатываем прогресс
+    const result = processNewWorkout({
+      ...form,
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+    });
+    
+    // Показываем награду
+    if (result) {
+      setRewardData(result);
+      setShowReward(true);
+      haptic.success();
+    } else {
+      setSaved(true);
+      setTimeout(() => {
+        setSaved(false);
+        setScreen("home");
+      }, 1500);
+    }
+  }, [addWorkout, processNewWorkout, haptic]);
+
+  /**
+   * Закрыть модальное окно награды
+   */
+  const handleCloseReward = useCallback(() => {
+    setShowReward(false);
+    setRewardData(null);
+    setScreen("home");
+  }, []);
 
   /**
    * Обработчик удаления тренировки
@@ -172,11 +210,12 @@ export default function YogaQuest() {
 
   // Данные для тикера
   const tickerContent = useMemo(() => {
+    const level = progression?.level?.title || 'Новичок';
     const base = workouts.length > 0
-      ? `✦ STREAK: ${stats.streak} ДНЕЙ ✦ ТРЕНИРОВОК: ${workouts.length} ✦ НА КОВРИКЕ: ${stats.totalHours} ЧАС ✦ УРОВЕНЬ: ${stats.level.label} ✦ `
+      ? `✦ STREAK: ${stats.streak} ДНЕЙ ✦ ТРЕНИРОВОК: ${workouts.length} ✦ XP: ${progression?.totalXP || 0} ✦ УРОВЕНЬ: ${level} ✦ `
       : `✦ ДОБРО ПОЖАЛОВАТЬ В YOGAQUEST ✦ НАЧНИ СВОЮ ПРАКТИКУ ✦ НАЖМИ + ЧТОБЫ ДОБАВИТЬ ТРЕНИРОВКУ ✦ `;
     return base.repeat(3);
-  }, [workouts.length, stats.streak, stats.totalHours, stats.level.label]);
+  }, [workouts.length, stats.streak, progression]);
 
   // Данные недели
   const weekData = useMemo(() => getWeekStats(workouts), [workouts]);
@@ -207,6 +246,16 @@ export default function YogaQuest() {
 
         {/* Save Modal */}
         <SaveModal isOpen={saved} />
+
+        {/* Reward Modal */}
+        <RewardModal
+          isOpen={showReward}
+          onClose={handleCloseReward}
+          xpResult={rewardData?.xpBreakdown}
+          levelUp={rewardData?.levelUp}
+          newAchievements={rewardData?.newAchievements}
+          gardenGrowth={rewardData?.gardenGrowth}
+        />
 
         {/* Achievement Popup */}
         {newAchievement && (
@@ -268,13 +317,23 @@ export default function YogaQuest() {
                     <div className="stat-label">ЧАСОВ НА КОВРИКЕ</div>
                   </div>
                   <div className="stat-block">
-                    <div className="stat-num">{stats.avgDuration}</div>
-                    <div className="stat-label">МИН. В СРЕДНЕМ</div>
+                    <div className="stat-num">{progression?.totalXP || 0}</div>
+                    <div className="stat-label">XP</div>
                   </div>
                 </div>
 
                 {/* Level Card */}
-                <LevelCard workoutCount={workouts.length} />
+                <LevelCard 
+                  totalXP={progression?.totalXP || 0} 
+                  workouts={workouts} 
+                />
+
+                {/* Garden Preview */}
+                <GardenPreview 
+                  workouts={workouts}
+                  onClick={() => setScreen("garden")}
+                  style={{ marginBottom: 12 }}
+                />
 
                 {/* Today's Workouts */}
                 {stats.todayCount > 0 && (
@@ -366,6 +425,23 @@ export default function YogaQuest() {
                 onSubmit={handleAddWorkout}
                 onHaptic={handleHaptic}
               />
+            )}
+
+            {/* GARDEN SCREEN */}
+            {screen === "garden" && (
+              <>
+                <GardenScene 
+                  workouts={workouts}
+                  unlockedAchievements={progression?.unlockedAchievements || []}
+                />
+                <PixelBtn
+                  variant="secondary"
+                  style={{ width: "100%", marginTop: 12 }}
+                  onClick={() => setScreen("home")}
+                >
+                  ← НАЗАД
+                </PixelBtn>
+              </>
             )}
 
             {/* PROGRESS SCREEN */}

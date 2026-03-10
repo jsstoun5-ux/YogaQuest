@@ -1,0 +1,356 @@
+/**
+ * GardenScene Styles
+ * Пиксельная эстетика сада практики
+ */
+
+/* Контейнер сцены */
+.garden-scene {
+  position: relative;
+  width: 100%;
+  min-height: 280px;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: "'Press Start 2P', monospace";
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Заголовок сада */
+.garden-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.garden-stage-icon {
+  font-size: 24px;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.1));
+}
+
+.garden-stage-info {
+  flex: 1;
+}
+
+.garden-stage-title {
+  font-size: 8px;
+  color: #5D4B8A;
+  margin-bottom: 4px;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.garden-stage-desc {
+  font-size: 5px;
+  color: #7E6AA8;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+/* Холст сада */
+.garden-canvas {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+/* Земля */
+.garden-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  border-radius: 50% 50% 0 0 / 20% 20% 0 0;
+}
+
+/* Контейнер элементов */
+.garden-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Базовый элемент */
+.garden-element {
+  position: absolute;
+  image-rendering: pixelated;
+  transform-origin: center bottom;
+  transition: transform 0.3s ease;
+}
+
+/* Трава */
+.garden-element--grass {
+  width: 12px;
+  height: 20px;
+  background: linear-gradient(to top, transparent 0%, var(--element-color, #9CD67A) 30%, var(--element-color, #9CD67A) 70%, transparent 100%);
+  clip-path: polygon(
+    0% 100%, 10% 40%, 20% 100%, 30% 50%, 40% 100%, 
+    50% 30%, 60% 100%, 70% 60%, 80% 100%, 90% 40%, 100% 100%
+  );
+}
+
+/* Мох */
+.garden-element--moss {
+  width: 20px;
+  height: 8px;
+  background: var(--element-color, #9CD67A);
+  border-radius: 50%;
+  box-shadow: 
+    -3px 0 0 var(--element-color, #9CD67A),
+    3px 0 0 var(--element-color, #9CD67A);
+}
+
+/* Росток */
+.garden-element--sprout {
+  width: 8px;
+  height: 16px;
+  background: linear-gradient(to top, var(--element-color, #7FC97F) 0%, transparent 100%);
+  border-radius: 4px 4px 0 0;
+}
+
+/* Цветок */
+.garden-element--flower {
+  width: 16px;
+  height: 16px;
+  background: var(--element-color, #FF9EC7);
+  border-radius: 50%;
+  box-shadow: 
+    0 -8px 0 var(--element-color, #FF9EC7),
+    8px 0 0 var(--element-color, #FF9EC7),
+    0 8px 0 var(--element-color, #FF9EC7),
+    -8px 0 0 var(--element-color, #FF9EC7);
+}
+
+/* Камень */
+.garden-element--stone {
+  width: 20px;
+  height: 14px;
+  background: var(--element-color, #a8a8a8);
+  border-radius: 30% 30% 20% 20%;
+  box-shadow: 
+    inset -2px -2px 0 rgba(0, 0, 0, 0.2),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Дерево */
+.garden-element--tree {
+  width: 40px;
+  height: 60px;
+  background: linear-gradient(to top, #8a7355 0%, #8a7355 20%, transparent 20%);
+  position: relative;
+}
+
+.garden-element--tree::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 50px;
+  background: var(--element-color, #5a8a4a);
+  border-radius: 50%;
+  box-shadow: 
+    -10px 10px 0 var(--element-color, #5a8a4a),
+    10px 10px 0 var(--element-color, #5a8a4a);
+}
+
+/* Вода */
+.garden-element--water {
+  width: 80px;
+  height: 30px;
+  background: var(--element-color, #8ED6E8);
+  border-radius: 50%;
+  opacity: 0.8;
+  box-shadow: 
+    inset 0 -5px 10px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(142, 214, 232, 0.3);
+}
+
+/* Отражение */
+.garden-element--reflection {
+  width: 40px;
+  height: 10px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.3) 50%, 
+    transparent 100%
+  );
+  border-radius: 50%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Лотос */
+.garden-element--lotus {
+  width: 20px;
+  height: 12px;
+  background: var(--element-color, #FF9EC7);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  box-shadow: 
+    -6px 0 0 var(--element-color, #FF9EC7),
+    6px 0 0 var(--element-color, #FF9EC7);
+}
+
+.garden-element--lotus::before {
+  content: '🪷';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+}
+
+/* Фонарь */
+.garden-element--lantern {
+  width: 14px;
+  height: 20px;
+  background: linear-gradient(to bottom, 
+    var(--element-color, #F7D774) 0%, 
+    #ffd700 50%, 
+    var(--element-color, #F7D774) 100%
+  );
+  border-radius: 3px;
+  box-shadow: 
+    0 0 10px var(--element-color, #F7D774),
+    0 0 20px rgba(247, 215, 116, 0.5);
+}
+
+/* Светлячок */
+.garden-element--firefly {
+  width: 6px;
+  height: 6px;
+  background: var(--element-color, #F7D774);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 4px var(--element-color, #F7D774),
+    0 0 8px var(--element-color, #F7D774),
+    0 0 12px rgba(247, 215, 116, 0.5);
+}
+
+/* Мостик */
+.garden-element--bridge {
+  width: 40px;
+  height: 8px;
+  background: var(--element-color, #8a7355);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Путь */
+.garden-element--path {
+  width: 60px;
+  height: 6px;
+  background: var(--element-color, #c9b8a8);
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+/* Растение */
+.garden-element--plant {
+  width: 16px;
+  height: 24px;
+  background: linear-gradient(to top, 
+    transparent 0%, 
+    var(--element-color, #5a8a4a) 30%, 
+    var(--element-color, #5a8a4a) 70%, 
+    transparent 100%
+  );
+  border-radius: 8px 8px 0 0;
+}
+
+/* Прогресс сада */
+.garden-progress {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.garden-progress-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.garden-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9CD67A 0%, #7FC97F 50%, #5a8a4a 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.garden-progress-text {
+  font-size: 5px;
+  color: #5D4B8A;
+  text-align: center;
+}
+
+/* Максимальная стадия */
+.garden-max-stage {
+  padding: 12px;
+  text-align: center;
+  font-size: 6px;
+  color: #5D4B8A;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Анимации */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 
+      0 0 10px var(--element-color, #F7D774),
+      0 0 20px rgba(247, 215, 116, 0.5);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 
+      0 0 5px var(--element-color, #F7D774),
+      0 0 10px rgba(247, 215, 116, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-10px);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateX(10px);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 320px) {
+  .garden-scene {
+    min-height: 240px;
+  }
+  
+  .garden-canvas {
+    height: 150px;
+  }
+  
+  .garden-stage-title {
+    font-size: 7px;
+  }
+  
+  .garden-stage-desc {
+    font-size: 4px;
+  }
+}
