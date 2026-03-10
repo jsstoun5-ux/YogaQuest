@@ -9,7 +9,7 @@ import './LevelCard.css';
 /**
  * Карточка уровня
  */
-export default function LevelCard({ totalXP = 0, workouts = [] }) {
+export function LevelCard({ totalXP = 0, workouts = [] }) {
   // Вычисляем прогресс уровня
   const levelData = useMemo(() => {
     // Если передан totalXP, используем его
