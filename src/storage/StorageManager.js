@@ -8,6 +8,7 @@
  * - Queued saves if storage not ready
  * - No CloudStorage usage after migration
  * - Minimal payload storage
+ * - Timeouts to prevent hanging on iPhone
  */
 
 // Storage keys - only essential data
@@ -18,6 +19,9 @@ const KEYS = {
   SEEN_ACHIEVEMENTS: 'yq_seen',   // Array of seen achievement IDs
   MIGRATION: 'yq_migrated',       // Migration completed flag
 };
+
+// Timeout for storage operations (ms)
+const STORAGE_TIMEOUT = 5000;
 
 // Singleton state
 let instance = null;
@@ -38,6 +42,7 @@ const diagnostics = {
   selectedBackend: 'none',
   migrationStatus: 'pending',
   initTime: null,
+  timeoutOccurred: false,
 };
 
 /**
@@ -74,7 +79,29 @@ function printDiagnostics() {
   log('Selected backend:', diagnostics.selectedBackend);
   log('Migration status:', diagnostics.migrationStatus);
   log('Init time:', diagnostics.initTime ? `${diagnostics.initTime}ms` : 'not initialized');
+  log('Timeout occurred:', diagnostics.timeoutOccurred);
   log('===========================');
+}
+
+/**
+ * Create a promise that rejects after timeout
+ */
+function createTimeoutPromise(ms, operation) {
+  return new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error(`${operation} timed out after ${ms}ms`));
+    }, ms);
+  });
+}
+
+/**
+ * Race a promise against a timeout
+ */
+function withTimeout(promise, ms, operation) {
+  return Promise.race([
+    promise,
+    createTimeoutPromise(ms, operation),
+  ]);
 }
 
 /**
@@ -119,6 +146,7 @@ class StorageManager {
   /**
    * Initialize storage and run migration if needed
    * Returns the same promise if already called
+   * Never hangs - will timeout and mark as initialized anyway
    */
   async initialize() {
     // Already initialized - return immediately
@@ -146,8 +174,12 @@ class StorageManager {
     log('Starting initialization...');
     
     try {
-      // Run migration first (one-time only)
-      await this._runMigrationIfNeeded();
+      // Run migration first (one-time only) with timeout
+      await withTimeout(
+        this._runMigrationIfNeeded(),
+        STORAGE_TIMEOUT,
+        'Migration'
+      );
       
       // Mark as initialized
       isInitialized = true;
@@ -163,7 +195,15 @@ class StorageManager {
     } catch (e) {
       console.error('[StorageManager] Initialization failed:', e);
       diagnostics.migrationStatus = 'failed: ' + e.message;
-      throw e;
+      diagnostics.timeoutOccurred = true;
+      
+      // CRITICAL: Mark as initialized anyway to unblock the app
+      isInitialized = true;
+      migrationCompleted = true;
+      
+      printDiagnostics();
+      log('Initialization timed out, continuing with degraded storage');
+      return true;
     }
   }
   
@@ -243,7 +283,11 @@ class StorageManager {
     } catch (e) {
       console.error('[StorageManager] Migration failed:', e);
       // Mark as migrated anyway to prevent retry loops
-      await this._setRaw(KEYS.MIGRATION, 'true');
+      try {
+        await this._setRaw(KEYS.MIGRATION, 'true');
+      } catch (e2) {
+        // Ignore
+      }
       migrationCompleted = true;
     }
   }
@@ -252,16 +296,20 @@ class StorageManager {
    * Get from CloudStorage (only for migration)
    */
   _getFromCloudStorage(key) {
-    return new Promise((resolve) => {
-      this.tg.CloudStorage.getItem(key, (err, value) => {
-        if (err) {
-          log('CloudStorage error for', key, ':', err);
-          resolve(null);
-        } else {
-          resolve(value || null);
-        }
-      });
-    });
+    return withTimeout(
+      new Promise((resolve) => {
+        this.tg.CloudStorage.getItem(key, (err, value) => {
+          if (err) {
+            log('CloudStorage error for', key, ':', err);
+            resolve(null);
+          } else {
+            resolve(value || null);
+          }
+        });
+      }),
+      STORAGE_TIMEOUT,
+      `CloudStorage.get(${key})`
+    ).catch(() => null);
   }
   
   /**
@@ -309,10 +357,10 @@ class StorageManager {
     throw new Error('No storage backend');
   }
   
-  // === DeviceStorage operations ===
+  // === DeviceStorage operations with timeout ===
   
   _getFromDeviceStorage(key) {
-    return new Promise((resolve) => {
+    const operation = new Promise((resolve) => {
       this.tg.DeviceStorage.getItem(key, (err, value) => {
         if (err) {
           console.error('[StorageManager] DeviceStorage.get error:', key, err);
@@ -322,10 +370,17 @@ class StorageManager {
         }
       });
     });
+    
+    return withTimeout(operation, STORAGE_TIMEOUT, `DeviceStorage.get(${key})`)
+      .catch((e) => {
+        console.error('[StorageManager] DeviceStorage.get timeout:', key, e);
+        diagnostics.timeoutOccurred = true;
+        return null;
+      });
   }
   
   _setToDeviceStorage(key, value) {
-    return new Promise((resolve, reject) => {
+    const operation = new Promise((resolve, reject) => {
       this.tg.DeviceStorage.setItem(key, value, (err) => {
         if (err) {
           console.error('[StorageManager] DeviceStorage.set error:', key, err);
@@ -335,10 +390,17 @@ class StorageManager {
         }
       });
     });
+    
+    return withTimeout(operation, STORAGE_TIMEOUT, `DeviceStorage.set(${key})`)
+      .catch((e) => {
+        console.error('[StorageManager] DeviceStorage.set timeout:', key, e);
+        diagnostics.timeoutOccurred = true;
+        throw e;
+      });
   }
   
   _removeFromDeviceStorage(key) {
-    return new Promise((resolve, reject) => {
+    const operation = new Promise((resolve, reject) => {
       this.tg.DeviceStorage.removeItem(key, (err) => {
         if (err) {
           console.error('[StorageManager] DeviceStorage.remove error:', key, err);
@@ -348,6 +410,13 @@ class StorageManager {
         }
       });
     });
+    
+    return withTimeout(operation, STORAGE_TIMEOUT, `DeviceStorage.remove(${key})`)
+      .catch((e) => {
+        console.error('[StorageManager] DeviceStorage.remove timeout:', key, e);
+        diagnostics.timeoutOccurred = true;
+        throw e;
+      });
   }
   
   // === localStorage operations ===
@@ -568,6 +637,7 @@ export function getStorageManager(tg) {
 /**
  * Initialize storage - must be called once at app startup
  * Returns a promise that resolves when storage is ready
+ * NEVER hangs - will timeout and resolve anyway
  */
 export async function initializeStorage(tg) {
   const manager = getStorageManager(tg);

@@ -54,11 +54,29 @@ export default function YogaQuest() {
   const [rewardData, setRewardData] = useState(null);
   
   // Инициализация хранилища при старте приложения
+  // SAFETY: Never block forever - max 10 seconds wait
   useEffect(() => {
+    let mounted = true;
+    let safetyTimeout = null;
+    
     async function initStorage() {
       try {
         console.log('[App] Initializing storage...');
+        
+        // Safety timeout - ensure app loads even if storage hangs
+        safetyTimeout = setTimeout(() => {
+          if (mounted && !dataLoaded) {
+            console.warn('[App] Storage init timeout, proceeding anyway');
+            setDataLoaded(true);
+          }
+        }, 10000);
+        
         await initializeStorage(tg);
+        
+        // Clear safety timeout if init completed
+        clearTimeout(safetyTimeout);
+        
+        if (!mounted) return;
         
         // Выводим диагностику
         const diag = getStorageDiagnostics();
@@ -67,16 +85,24 @@ export default function YogaQuest() {
         // Проверяем онбординг
         const storage = getStorageManager(tg);
         const seen = await storage.isOnboardingSeen();
-        if (!seen) {
+        if (!seen && mounted) {
           setShowOnboarding(true);
         }
       } catch (e) {
         console.error('[App] Storage initialization failed:', e);
       } finally {
-        setDataLoaded(true);
+        if (mounted) {
+          clearTimeout(safetyTimeout);
+          setDataLoaded(true);
+        }
       }
     }
     initStorage();
+    
+    return () => {
+      mounted = false;
+      if (safetyTimeout) clearTimeout(safetyTimeout);
+    };
   }, [tg]);
 
   // Тренировки
