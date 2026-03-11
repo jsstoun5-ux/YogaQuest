@@ -146,6 +146,8 @@ const PracticeForm = memo(function PracticeForm({ onSubmit, onHaptic }) {
             onChange={(e) => handleChange('date', e.target.value)}
             style={{
               width: "100%",
+              maxWidth: "100%",
+              boxSizing: "border-box",
               background: "#fff0f5",
               border: `2px solid ${errors.date ? '#ff6b8a' : '#c9b8ff'}`,
               boxShadow: "2px 2px 0 #9b72cf",
