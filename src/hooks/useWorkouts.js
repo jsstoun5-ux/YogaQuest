@@ -1,12 +1,12 @@
 /**
  * Хук для управления тренировками
- * Использует единое хранилище (DeviceStorage или localStorage)
+ * Использует централизованный StorageManager
  */
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { calcStreak } from '../constants/achievements.js';
 import { getLevel } from '../constants/levels.js';
 import { getLocalDateStr } from '../utils/dateUtils.js';
-import { Storage, loadWorkouts, saveWorkouts, migrateFromCloudStorageIfNeeded } from '../utils/storage.js';
+import { getStorageManager, isStorageInitialized } from '../storage/StorageManager.js';
 
 /**
  * Создать новую тренировку
@@ -46,21 +46,22 @@ export function useWorkouts(tg) {
   // Ref для отслеживания начальной загрузки
   const isInitialMount = useRef(true);
 
-  // Инициализация хранилища
+  // Инициализация хранилища - использует централизованный singleton
   useEffect(() => {
-    console.log('[useWorkouts] Initializing with tg:', !!tg, 'hasDeviceStorage:', !!(tg && tg.DeviceStorage));
+    console.log('[useWorkouts] Initializing...');
     
-    const storage = new Storage(tg);
+    // Получаем singleton менеджер хранилища
+    const storage = getStorageManager(tg);
     storageRef.current = storage;
     
     async function loadData() {
       try {
-        // Сначала пробуем миграцию из CloudStorage (если нужно)
-        await migrateFromCloudStorageIfNeeded(tg, storage);
+        // Ждем инициализации хранилища
+        await storage.initialize();
         
         // Загружаем данные
-        console.log('[useWorkouts] Loading workouts from', storage.storageType, '...');
-        const data = await loadWorkouts(storage);
+        console.log('[useWorkouts] Loading workouts from', storage.backend, '...');
+        const data = await storage.loadWorkouts();
         console.log('[useWorkouts] Loaded workouts:', data?.length || 0, 'items');
         setWorkouts(data || []);
       } catch (e) {
@@ -82,11 +83,16 @@ export function useWorkouts(tg) {
       return;
     }
     
+    // Проверяем что хранилище инициализировано
+    if (!isStorageInitialized()) {
+      console.log('[useWorkouts] Storage not initialized, save will be queued');
+    }
+    
     async function persistWorkouts() {
       setIsSaving(true);
       try {
-        console.log('[useWorkouts] Saving', workouts.length, 'workouts to', storageRef.current.storageType);
-        await saveWorkouts(storageRef.current, workouts);
+        console.log('[useWorkouts] Saving', workouts.length, 'workouts');
+        await storageRef.current.saveWorkouts(workouts);
         console.log('[useWorkouts] Workouts saved successfully');
       } catch (e) {
         console.error('[useWorkouts] Failed to save workouts:', e);
@@ -131,7 +137,7 @@ export function useWorkouts(tg) {
     setWorkouts([]);
   }, []);
 
-  // Вычисляемые значения
+  // Вычисляемые значения - recalculated from raw data
   const stats = useMemo(() => {
     const total = workouts.length;
     const totalMinutes = workouts.reduce((sum, w) => sum + w.duration, 0);

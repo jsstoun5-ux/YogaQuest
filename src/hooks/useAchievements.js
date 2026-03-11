@@ -1,11 +1,11 @@
 /**
  * Хук для управления достижениями
+ * Использует централизованный StorageManager
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ACHIEVEMENTS, getUnlockedAchievements } from '../constants/achievements.js';
-import { Storage } from '../utils/storage.js';
+import { getStorageManager } from '../storage/StorageManager.js';
 
-const SEEN_ACHIEVEMENTS_KEY = 'yogaquest_seen_achievements';
 const ACHIEVEMENT_DISPLAY_TIME = 10000; // 10 секунд
 
 /**
@@ -26,26 +26,33 @@ export function useAchievements(workouts, onUnlock, tg) {
   // Ref для таймера
   const timerRef = useRef(null);
 
-  // Хранилище
-  const storage = useRef(new Storage(tg));
+  // Хранилище - используем централизованный singleton
+  const storageRef = useRef(null);
 
   // Загрузить просмотренные достижения при старте
   useEffect(() => {
     async function loadSeenAchievements() {
       try {
-        const storageInstance = storage.current;
-        const seenData = await storageInstance.getJSON(SEEN_ACHIEVEMENTS_KEY);
+        // Получаем singleton менеджер хранилища
+        const storage = getStorageManager(tg);
+        storageRef.current = storage;
+        
+        // Ждем инициализации
+        await storage.initialize();
+        
+        // Загружаем просмотренные достижения
+        const seenData = await storage.loadSeenAchievements();
         if (Array.isArray(seenData)) {
           prevUnlockedRef.current = new Set(seenData);
         }
       } catch (e) {
-        console.warn('Failed to load seen achievements:', e);
+        console.warn('[useAchievements] Failed to load seen achievements:', e);
       } finally {
         setIsLoaded(true);
       }
     }
     loadSeenAchievements();
-  }, []);
+  }, [tg]);
 
   // Очистка таймера при размонтировании
   useEffect(() => {
@@ -81,7 +88,11 @@ export function useAchievements(workouts, onUnlock, tg) {
       
       // Сохраняем в хранилище
       const seenArray = Array.from(prevUnlockedRef.current);
-      storage.current.setJSON(SEEN_ACHIEVEMENTS_KEY, seenArray).catch(console.warn);
+      if (storageRef.current) {
+        storageRef.current.saveSeenAchievements(seenArray).catch(e => {
+          console.warn('[useAchievements] Failed to save seen achievements:', e);
+        });
+      }
       
       // Показываем первое новое достижение
       const achievement = newUnlocked[0];

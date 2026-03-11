@@ -5,11 +5,9 @@
  * - tg         : сам объект WebApp (или null вне Telegram)
  * - user       : данные пользователя { id, first_name, last_name, username, ... }
  * - haptic     : вибрация (impact / notification / selection)
- * - storage    : CloudStorage (get/set/remove) — данные хранятся в Telegram-облаке
  * - isTelegram : boolean, открыто ли внутри Telegram
  */
 import { useMemo, useCallback } from 'react';
-import { Storage } from '../utils/storage.js';
 
 /**
  * Хук для работы с Telegram WebApp API
@@ -45,9 +43,6 @@ export function useTelegram() {
     /** Выбор — при переключении вкладок */
     select: () => tg?.HapticFeedback?.selectionChanged(),
   }), [tg]);
-
-  // CloudStorage
-  const storage = useMemo(() => new Storage(tg), [tg]);
 
   // Методы для управления WebApp
   const expand = useCallback(() => {
@@ -85,9 +80,6 @@ export function useTelegram() {
     isTelegram,
     user,
     telegramId,
-    
-    // Хранилище
-    storage,
     
     // Haptic
     haptic,

@@ -1,7 +1,7 @@
 /**
  * useProgression Hook for YogaQuest
  * Хук для управления прогрессом пользователя (XP, уровни, достижения)
- * Использует единое хранилище (DeviceStorage или localStorage)
+ * Использует централизованный StorageManager
  */
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { calculateWorkoutXP, checkReturnBonus, XP_CONFIG } from '../game/xpSystem.js';
@@ -10,9 +10,7 @@ import { calculateFullProgress } from '../game/progressionEngine.js';
 import { checkNewAchievements, getAchievementsProgress } from '../achievements/checkAchievements.js';
 import { ACHIEVEMENT_LIST } from '../achievements/achievementList.js';
 import { getLocalDateStr } from '../utils/dateUtils.js';
-import { Storage, migrateFromCloudStorageIfNeeded } from '../utils/storage.js';
-
-const PROFILE_KEY = 'yogaquest_profile';
+import { getStorageManager, isStorageInitialized } from '../storage/StorageManager.js';
 
 /**
  * Хук для управления прогрессом
@@ -36,30 +34,29 @@ export function useProgression(workouts, tg) {
   // Ref для отслеживания начальной загрузки
   const isInitialMount = useRef(true);
   
-  // Инициализация хранилища
+  // Инициализация хранилища - использует централизованный singleton
   useEffect(() => {
-    console.log('[useProgression] Initializing with tg:', !!tg, 'hasDeviceStorage:', !!(tg && tg.DeviceStorage));
+    console.log('[useProgression] Initializing...');
     
-    const storage = new Storage(tg);
+    // Получаем singleton менеджер хранилища
+    const storage = getStorageManager(tg);
     storageRef.current = storage;
     
     async function loadProfile() {
       try {
-        // Сначала пробуем миграцию из CloudStorage (если нужно)
-        await migrateFromCloudStorageIfNeeded(tg, storage);
+        // Ждем инициализации хранилища
+        await storage.initialize();
         
         // Загружаем данные
-        console.log('[useProgression] Loading profile from', storage.storageType, '...');
-        const data = await storage.getJSON(PROFILE_KEY);
+        console.log('[useProgression] Loading profile from', storage.backend, '...');
+        const data = await storage.loadProfile();
         console.log('[useProgression] Loaded profile:', data);
         
-        if (data) {
-          setProfile({
-            totalXP: data.totalXP || 0,
-            unlockedAchievementIds: data.unlockedAchievementIds || [],
-            lastReturnBonusDate: data.lastReturnBonusDate || null,
-          });
-        }
+        setProfile({
+          totalXP: data.totalXP || 0,
+          unlockedAchievementIds: data.unlockedAchievementIds || [],
+          lastReturnBonusDate: data.lastReturnBonusDate || null,
+        });
       } catch (e) {
         console.error('[useProgression] Failed to load profile:', e);
       } finally {
@@ -78,11 +75,16 @@ export function useProgression(workouts, tg) {
       return;
     }
     
+    // Проверяем что хранилище инициализировано
+    if (!isStorageInitialized()) {
+      console.log('[useProgression] Storage not initialized, save will be queued');
+    }
+    
     async function persistProfile() {
       setIsSaving(true);
       try {
-        console.log('[useProgression] Saving profile to', storageRef.current.storageType);
-        await storageRef.current.setJSON(PROFILE_KEY, profile);
+        console.log('[useProgression] Saving profile');
+        await storageRef.current.saveProfile(profile);
         console.log('[useProgression] Profile saved successfully');
       } catch (e) {
         console.error('[useProgression] Failed to save profile:', e);
@@ -252,7 +254,7 @@ export function useProgression(workouts, tg) {
     });
     
     if (storageRef.current) {
-      await storageRef.current.setJSON(PROFILE_KEY, {
+      await storageRef.current.saveProfile({
         totalXP: 0,
         unlockedAchievementIds: [],
         lastReturnBonusDate: null,

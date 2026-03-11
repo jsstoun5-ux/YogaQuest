@@ -22,11 +22,13 @@ import {
 } from './components/pages/index.js';
 
 // Constants
-import { STORAGE_KEYS, PRACTICE_TYPES, MOODS } from './constants/index.js';
+import { PRACTICE_TYPES, MOODS } from './constants/index.js';
 
 // Utils
 import { getLocalDateStr, getWeekStats } from './utils/dateUtils.js';
-import { Storage, isOnboardingSeen, markOnboardingSeen } from './utils/storage.js';
+
+// Storage
+import { getStorageManager, initializeStorage, getStorageDiagnostics } from './storage/StorageManager.js';
 
 // Styles
 import './styles/pixel.css';
@@ -37,7 +39,7 @@ import './components/pages/LevelCard.css';
  * Главный компонент приложения
  */
 export default function YogaQuest() {
-  const { tg, isTelegram, user, telegramId, haptic, storage: tgStorage } = useTelegram();
+  const { tg, isTelegram, user, telegramId, haptic } = useTelegram();
   
   // Состояния
   const [screen, setScreen] = useState("home");
@@ -51,9 +53,32 @@ export default function YogaQuest() {
   const [showReward, setShowReward] = useState(false);
   const [rewardData, setRewardData] = useState(null);
   
-  // Хранилище
-  const storage = useMemo(() => new Storage(tg), [tg]);
-  
+  // Инициализация хранилища при старте приложения
+  useEffect(() => {
+    async function initStorage() {
+      try {
+        console.log('[App] Initializing storage...');
+        await initializeStorage(tg);
+        
+        // Выводим диагностику
+        const diag = getStorageDiagnostics();
+        console.log('[App] Storage initialized:', diag);
+        
+        // Проверяем онбординг
+        const storage = getStorageManager(tg);
+        const seen = await storage.isOnboardingSeen();
+        if (!seen) {
+          setShowOnboarding(true);
+        }
+      } catch (e) {
+        console.error('[App] Storage initialization failed:', e);
+      } finally {
+        setDataLoaded(true);
+      }
+    }
+    initStorage();
+  }, [tg]);
+
   // Тренировки
   const {
     workouts,
@@ -78,31 +103,15 @@ export default function YogaQuest() {
   // Прогресс (XP, уровни)
   const { progression, processNewWorkout } = useProgression(workouts, tg);
 
-  // Загрузка данных и проверка онбординга
-  useEffect(() => {
-    async function init() {
-      try {
-        const seen = await isOnboardingSeen(storage);
-        if (!seen) {
-          setShowOnboarding(true);
-        }
-      } catch (e) {
-        console.warn('Init error:', e);
-      } finally {
-        setDataLoaded(true);
-      }
-    }
-    init();
-  }, [storage]);
-
   /**
    * Обработчик завершения онбординга
    */
   const handleOnboardingComplete = useCallback(async () => {
     setShowOnboarding(false);
     haptic.success();
-    await markOnboardingSeen(storage);
-  }, [haptic, storage]);
+    const storage = getStorageManager(tg);
+    await storage.markOnboardingSeen();
+  }, [haptic, tg]);
 
   /**
    * Обработчик добавления тренировки
